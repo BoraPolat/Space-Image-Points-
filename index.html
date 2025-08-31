@@ -14,15 +14,56 @@
       overflow: hidden;
       margin: 0;
       background-color: #000;
+      position: relative;
     }
     canvas {
       display: block;
       touch-action: none;
       user-select: none;
     }
+    #fullscreenBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #fullscreenBtn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
+    }
+    #fullscreenBtn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.35);
+    }
+    /* Tam ekran modunda buton daha şeffaf olsun */
+    body:fullscreen #fullscreenBtn,
+    body:-webkit-full-screen #fullscreenBtn,
+    body:-moz-full-screen #fullscreenBtn,
+    body:-ms-fullscreen #fullscreenBtn {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 <body>
+  <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
@@ -20063,6 +20104,69 @@
     // Ekran oranı düzeltmesi için değişkenler
     let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
     let offsetY; // Görselı ortalamak için Y ekseni kaydırması
+
+    // Tam ekran fonksiyonları
+    let isFullscreen = false;
+    
+    function toggleFullscreen() {
+      if (!isFullscreen) {
+        // Tam ekrana geç
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        // Tam ekrandan çık
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+
+    // Tam ekran durumu değişikliklerini dinle
+    function handleFullscreenChange() {
+      isFullscreen = !!(document.fullscreenElement || 
+                       document.webkitFullscreenElement || 
+                       document.mozFullScreenElement || 
+                       document.msFullscreenElement);
+      
+      // Canvas boyutunu güncelle
+      if (typeof resizeCanvas !== 'undefined') {
+        resizeCanvas(windowWidth, windowHeight);
+        calculateVirtualDimensions();
+      }
+      
+      // Buton ikonunu güncelle
+      const btn = document.getElementById('fullscreenBtn');
+      btn.innerHTML = isFullscreen ? '⛶' : '⛶';
+      btn.title = isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran';
+    }
+
+    // Event listener'ları ekle
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    // Buton tıklama olayı
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+    document.getElementById('fullscreenBtn').addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFullscreen();
+    });
 
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
