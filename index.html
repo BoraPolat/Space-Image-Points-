@@ -20,9 +20,35 @@
       touch-action: none;
       user-select: none;
     }
+
+    #orientation-message {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      z-index: 1000;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .rotate-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
+  <div id="orientation-message">
+    <span class="rotate-icon">🔄</span>
+    <p>Lütfen daha iyi bir deneyim için telefonunuzu yan çevirin.</p>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
@@ -20059,6 +20085,8 @@
     // Yeni eklenen değişkenler
     let isMouseActive = false;
     let isTouchActive = false;
+    let orientationMessage;
+
 
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
@@ -20112,6 +20140,7 @@
       }
 
       noStroke();
+      orientationMessage = document.getElementById('orientation-message');
     }
     
     // Olay dinleyicileri
@@ -20133,8 +20162,15 @@
       return false; // varsayılan davranışı engelle
     }
 
-
     function draw() {
+      // Ekran yönü dikeyse uyarı göster ve animasyonu durdur
+      if (windowWidth < windowHeight) {
+        orientationMessage.style.display = 'flex';
+        return; // Animasyon döngüsünü durdur
+      } else {
+        orientationMessage.style.display = 'none';
+      }
+
       // Arka plan normalde siyah, patlamadan sonra kademeli kararma
       background(0);
       if (explosionTriggered) {
