@@ -20166,6 +20166,20 @@
       appStarted = true;
       showCountdown = false;
       
+      // ŞİMDİ canvas'ı oluştur ve her şeyi başlat
+      createCanvas(windowWidth, windowHeight);
+      lockScreenOrientation();
+      
+      // 16:10 oranı için sanal yükseklik hesapla
+      calculateVirtualDimensions();
+      
+      window.addEventListener('resize', () => {
+        resizeCanvas(windowWidth, windowHeight);
+        calculateVirtualDimensions();
+      });
+
+      noStroke();
+      
       // Yıldız renkleri (gerçek yıldız renklerine yakın)
       let starColors = [
         color(255, 255, 255), // beyaz
@@ -20225,19 +20239,8 @@
     window.addEventListener('touchmove', preventDefault, { passive: false });
 
     function setup() {
-      createCanvas(windowWidth, windowHeight);
-      lockScreenOrientation();
-      
-      // 16:10 oranı için sanal yükseklik hesapla
-      calculateVirtualDimensions();
-      
-      window.addEventListener('resize', () => {
-        resizeCanvas(windowWidth, windowHeight);
-        calculateVirtualDimensions();
-      });
-
-      // Yıldızları henüz oluşturma, sadece setup
-      noStroke();
+      // Hiçbir şey yapma - sadece bekle
+      // Canvas bile oluşturma
     }
 
     // 16:10 oranı için sanal boyutları hesapla
@@ -20285,12 +20288,17 @@
 
 
     function draw() {
-      // Arka plan her zaman siyah
-      background(0);
-
-      // Eğer uygulama henüz başlamamışsa - hiçbir şey çizme!
+      // Eğer uygulama henüz başlamamışsa - hiçbir şey yapma!
       if (!appStarted) {
         if (showCountdown) {
+          // Canvas henüz yoksa oluştur (sadece geri sayım için)
+          if (!document.querySelector('canvas')) {
+            createCanvas(windowWidth, windowHeight);
+          }
+          
+          // Arka plan siyah
+          background(0);
+          
           // 3 saniye geri sayım
           let elapsed = (millis() - fullscreenStartTime) / 1000;
           let remaining = Math.max(0, 3 - elapsed);
@@ -20313,7 +20321,8 @@
 
       // ---- BURADAN SONRA TÜM ORİJİNAL KOD ----
       
-      // Patlamadan sonra kademeli kararma
+      // Arka plan normalde siyah, patlamadan sonra kademeli kararma
+      background(0);
       if (explosionTriggered) {
         if (bgFade < 255) bgFade += 0.2;
         fill(0, bgFade);
