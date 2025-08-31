@@ -20104,44 +20104,50 @@
     let isTouchActive = false;
     let p5Instance;
     
+    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
+    function createStars(p) {
+      stars = [];
+      allPoints = [];
+
+      // Yıldız renkleri (gerçek yıldız renklerine yakın)
+      let starColors = [
+        p.color(255, 255, 255), // beyaz
+        p.color(200, 220, 255), // mavi-beyaz
+        p.color(180, 180, 255), // sarı
+        p.color(255, 255, 255), // turuncu
+        p.color(200, 220, 255), // kırmızımsı
+        p.color(180, 180, 255) // açık mavi
+      ];
+
+      for (let i = 0; i < 400; i++) {
+        stars.push({
+          x: p.random(p.width),
+          y: p.random(p.height),
+          size: p.random(1, 3),
+          alpha: p.random(100, 255),
+          baseSpeedX: p.random(-0.2, 0.2),
+          baseSpeedY: p.random(-0.2, 0.2),
+          inertiaX: 0,
+          inertiaY: 0,
+          inertiaCounter: 0,
+          color: p.random(starColors)
+        });
+      }
+
+      // Gerçek yıldızlar için hedef noktaları oluştur (daha sonra kullanılacak)
+      for (let i = 0; i < 5000; i++) {
+        allPoints.push({
+          x: p.random(1),
+          y: p.random(1)
+        });
+      }
+    }
+
     // Sketch'i başlatan ana fonksiyon
     function initSketch(p) {
       p.setup = function() {
         p.createCanvas(p.windowWidth, p.windowHeight);
-        
-        // Yıldız renkleri (gerçek yıldız renklerine yakın)
-        let starColors = [
-          p.color(255, 255, 255), // beyaz
-          p.color(200, 220, 255), // mavi-beyaz
-          p.color(180, 180, 255), // sarı
-          p.color(255, 255, 255), // turuncu
-          p.color(200, 220, 255), // kırmızımsı
-          p.color(180, 180, 255) // açık mavi
-        ];
-
-        for (let i = 0; i < 400; i++) {
-          stars.push({
-            x: p.random(p.width),
-            y: p.random(p.height),
-            size: p.random(1, 3),
-            alpha: p.random(100, 255),
-            baseSpeedX: p.random(-0.2, 0.2),
-            baseSpeedY: p.random(-0.2, 0.2),
-            inertiaX: 0,
-            inertiaY: 0,
-            inertiaCounter: 0,
-            color: p.random(starColors)
-          });
-        }
-
-        // Gerçek yıldızlar için hedef noktaları oluştur (daha sonra kullanılacak)
-        for (let i = 0; i < 5000; i++) {
-          allPoints.push({
-            x: p.random(1),
-            y: p.random(1)
-          });
-        }
-
+        createStars(p); // Yıldızları oluştur
         p.noStroke();
 
         // Olay dinleyicileri
@@ -20149,7 +20155,10 @@
         p.mouseReleased = function() { isMouseActive = false; }
         p.touchStarted = function() { isTouchActive = true; return false; }
         p.touchEnded = function() { isTouchActive = false; return false; }
-        p.windowResized = function() { p.resizeCanvas(p.windowWidth, p.windowHeight); }
+        p.windowResized = function() { 
+          p.resizeCanvas(p.windowWidth, p.windowHeight); 
+          createStars(p); // Ekran boyutu değiştiğinde yıldızları yeniden oluştur
+        }
       }
 
       p.draw = function() {
