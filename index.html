@@ -18,10 +18,12 @@
       -webkit-text-size-adjust: none;
       -webkit-tap-highlight-color: rgba(0,0,0,0);
       background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
     }
     
     #yaren-canvas {
-      display: none; /* İlk başta gizli, butonla aktif olacak */
+      display: none; /* Initially hidden, will be shown with button click */
       touch-action: none;
       user-select: none;
       position: absolute;
@@ -38,6 +40,7 @@
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       background-color: #000;
@@ -59,6 +62,15 @@
       background-color: #ddd;
       transform: scale(1.05);
     }
+    
+    .message {
+      margin-top: 20px;
+      font-size: 1em;
+      text-align: center;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -71,7 +83,7 @@
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
-    // Not: Bu kodda ekran yönlendirme uyarısı veya kontrolü bulunmamaktadır.
+    // Not: Bu kodda ekran yönlendirme uyarısı veya kontrolü bulunmaktadır.
     let stars = [];
     let spinningStars = [];
     let holdTime = 0;
@@ -96,7 +108,17 @@
     let waveVisible = false;
     let realStarsCreatedTime = 0; // realStars oluşturulduğu zaman
 
-    let allPoints = [
+    let allPoints = []; // Boş dizi
+
+    // Yeni eklenen değişkenler
+    let isMouseActive = false;
+    let isTouchActive = false;
+    let p5Instance;
+    
+    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
+    function createStars(p) {
+      stars = [];
+      allPoints = [
     {
         "x": 0.2687,
         "y": 0.395
@@ -20097,17 +20119,7 @@
         "x": 0.5227,
         "y": 0.5713
     }
-]; // Boş dizi
-
-    // Yeni eklenen değişkenler
-    let isMouseActive = false;
-    let isTouchActive = false;
-    let p5Instance;
-    
-    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
-    function createStars(p) {
-      stars = [];
-      allPoints = [];
+];
 
       // Yıldız renkleri (gerçek yıldız renklerine yakın)
       let starColors = [
@@ -20508,36 +20520,62 @@
 
     // Tam ekran butonu için event listener
     document.getElementById('fullscreen-button').addEventListener('click', () => {
-      // Butonu gizle ve canvas'ı göster
-      document.getElementById('fullscreen-button-container').style.display = 'none';
-      document.getElementById('yaren-canvas').style.display = 'block';
+      const buttonContainer = document.getElementById('fullscreen-button-container');
+      const canvasContainer = document.getElementById('yaren-canvas');
+      const messageElement = document.getElementById('message');
 
-      // Tam ekran moduna geçişi bir Promise ile takip et
-      let fullscreenPromise;
-      if (document.documentElement.requestFullscreen) {
-        fullscreenPromise = document.documentElement.requestFullscreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        fullscreenPromise = document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.msRequestFullscreen) {
-        fullscreenPromise = document.documentElement.msRequestFullscreen();
-      }
-
-      // Tam ekran başarılı olduğunda animasyonu başlat
-      if (fullscreenPromise) {
-        fullscreenPromise.then(() => {
-          // Yıldızları oluşturmadan önce 2 saniye bekle
-          setTimeout(() => {
-            p5Instance = new p5(initSketch, 'yaren-canvas');
-          }, 2000); // 2 saniye gecikme
-        }).catch((err) => {
-          console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
-          // Tam ekran başarısız olsa bile animasyonu başlat
-          p5Instance = new p5(initSketch, 'yaren-canvas');
+      // İlk olarak ekranı yatay moda kilitlemeye çalış
+      let orientationPromise = Promise.resolve();
+      if (screen.orientation && screen.orientation.lock) {
+        orientationPromise = screen.orientation.lock('landscape').catch(err => {
+          console.error("Ekran yönü kilitlenemedi: ", err);
+          if (messageElement) {
+            messageElement.textContent = "Lütfen cihazınızı yatay konuma getirin.";
+          } else {
+            const msg = document.createElement('div');
+            msg.id = 'message';
+            msg.className = 'message';
+            msg.textContent = "Lütfen cihazınızı yatay konuma getirin.";
+            buttonContainer.appendChild(msg);
+          }
         });
-      } else {
-        // Tarayıcı tam ekranı desteklemiyorsa bile animasyonu başlat
-        p5Instance = new p5(initSketch, 'yaren-canvas');
       }
+
+      orientationPromise.then(() => {
+        // Ardından tam ekran moduna geç
+        let fullscreenPromise;
+        if (document.documentElement.requestFullscreen) {
+          fullscreenPromise = document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          fullscreenPromise = document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+          fullscreenPromise = document.documentElement.msRequestFullscreen();
+        }
+
+        if (fullscreenPromise) {
+          fullscreenPromise.then(() => {
+            // Butonu gizle ve canvas'ı göster
+            buttonContainer.style.display = 'none';
+            canvasContainer.style.display = 'block';
+
+            // Yıldızları oluşturmadan önce 2 saniye bekle
+            setTimeout(() => {
+              p5Instance = new p5(initSketch, 'yaren-canvas');
+            }, 2000); // 2 saniye gecikme
+          }).catch((err) => {
+            console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
+            // Tam ekran başarısız olsa bile animasyonu başlat
+            buttonContainer.style.display = 'none';
+            canvasContainer.style.display = 'block';
+            p5Instance = new p5(initSketch, 'yaren-canvas');
+          });
+        } else {
+          // Tarayıcı tam ekranı desteklemiyorsa bile animasyonu başlat
+          buttonContainer.style.display = 'none';
+          canvasContainer.style.display = 'block';
+          p5Instance = new p5(initSketch, 'yaren-canvas');
+        }
+      });
     });
   </script>
 </body>
