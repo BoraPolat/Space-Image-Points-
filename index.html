@@ -20112,7 +20112,7 @@
     let isTouchActive = false;
     let p5Instance;
 
-    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
+    // Function to create stars and target points
     function createStars(p) {
       stars = [];
       allPoints = [];
@@ -20149,7 +20149,7 @@
       }
     }
 
-    // Sketch'i başlatan ana fonksiyon
+    // Main function to initialize the sketch
     function initSketch(p) {
       p.setup = function() {
         p.createCanvas(p.windowWidth, p.windowHeight);
@@ -20161,7 +20161,7 @@
         p.touchStarted = function() { isTouchActive = true; return false; }
         p.touchEnded = function() { isTouchActive = false; return false; }
         
-        // Pencere boyutu değiştiğinde kanvası ve yıldızları yeniden oluştur
+        // Resize canvas and re-create stars when window size changes
         p.windowResized = function() { 
           p.resizeCanvas(p.windowWidth, p.windowHeight); 
           createStars(p);
@@ -20508,15 +20508,13 @@
           buttonContainer.style.display = 'none';
           canvasContainer.style.display = 'block';
           
-          // Tam ekran geçişinin tamamlanması için kısa bir gecikme
+          // Gecikme süresini 1 saniyeye yükselttik
           setTimeout(() => {
-            // Önceki p5 instance'ı kaldır
             if (p5Instance) {
               p5Instance.remove();
             }
-            // Yeni bir instance oluştur
             p5Instance = new p5(initSketch, 'yaren-canvas');
-          }, 500);
+          }, 1000); // 1000ms = 1 saniye
         }).catch((err) => {
           console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
           buttonContainer.style.display = 'none';
