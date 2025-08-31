@@ -20264,10 +20264,10 @@
         centerStar.size = 2; // orta boyut olarak sabitlendi
       }
 
-      // Sıradaki yıldızları 0.03 saniyede bir spinningStars dizisine ekle (daha hızlı)
+      // Sıradaki yıldızları 0.05 saniyede bir spinningStars dizisine ekle
       if (spinning && starsToSpin.length > 0) {
         spinTimer += deltaTime / 1000;
-        if (spinTimer >= 0.03) {
+        if (spinTimer >= 0.05) {
           let star = starsToSpin.shift();
           spinningStars.push({
             x: star.x,
@@ -20277,10 +20277,10 @@
             color: star.color,
             angle: random(TWO_PI),
             radius: random(80, 120),
-            baseSpeed: 0.03, // daha hızlı dönüş
+            baseSpeed: 0.02,
             speedMultiplier: 0,
-            acceleration: 0.0015, // daha hızlı hızlanma
-            maxMultiplier: 1.8, // biraz daha düşük maksimum
+            acceleration: 0.001,
+            maxMultiplier: 2.0,
             offsetX: random(-20, 20),
             offsetY: random(-20, 20),
             targetX: width / 2,
@@ -20295,8 +20295,8 @@
       // Dönen yıldızlar ve patlama
       if (spinning) {
         for (let s of spinningStars) {
-          s.x += (s.targetX - s.x) * 0.005; // merkeze daha hızlı gitme
-          s.y += (s.targetY - s.y) * 0.005;
+          s.x += (s.targetX - s.x) * 0.003;
+          s.y += (s.targetY - s.y) * 0.003;
 
           if (!explosionTriggered) s.speedMultiplier += s.acceleration;
 
