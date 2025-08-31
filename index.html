@@ -20304,7 +20304,22 @@
           let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
           let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
 
-          fill(red(s.color), green(s.color), blue(s.color), s.alpha);
+          // Parlaklık kontrolü - patlamadan 2 saniye öncesinden itibaren
+          let brightness = s.alpha;
+          let brightnessMultiplier = 1;
+          
+          if (!explosionTriggered) {
+            // Patlama eşiğine ne kadar yakınız?
+            let progressToExplosion = s.speedMultiplier / s.maxMultiplier;
+            
+            // Son 2 saniye için parlaklık artışı (yaklaşık speedMultiplier > 0.8 olduğunda)
+            if (progressToExplosion > 0.53) { // 0.8/1.5 = 0.53
+              let brightnessProgress = (progressToExplosion - 0.53) / (1 - 0.53); // 0-1 arası
+              brightnessMultiplier = 1 + brightnessProgress * 2; // 1x'den 3x'e kadar parlaklık artışı
+            }
+          }
+
+          fill(red(s.color), green(s.color), blue(s.color), brightness * brightnessMultiplier);
           ellipse(cx, cy, s.size);
 
           if (s.speedMultiplier >= s.maxMultiplier && !explosionTriggered) {
@@ -20322,7 +20337,7 @@
           if (explosionTriggered) {
             s.x += s.vx;
             s.y += s.vy;
-            s.alpha *= 0.9;
+            s.alpha *= 0.9; // Patlama sonrası normal alpha azalması
           }
         }
       }
