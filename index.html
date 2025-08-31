@@ -20288,7 +20288,7 @@
       // Arka plan her zaman siyah
       background(0);
 
-      // Eğer uygulama henüz başlamamışsa
+      // Eğer uygulama henüz başlamamışsa - hiçbir şey çizme!
       if (!appStarted) {
         if (showCountdown) {
           // 3 saniye geri sayım
@@ -20308,10 +20308,10 @@
             startApp();
           }
         }
-        return; // Uygulamanın geri kalanını çalıştırma
+        return; // Kodun geri kalanını hiç çalıştırma
       }
 
-      // Aşağısı orijinal draw kodunun devamı...
+      // ---- BURADAN SONRA TÜM ORİJİNAL KOD ----
       
       // Patlamadan sonra kademeli kararma
       if (explosionTriggered) {
