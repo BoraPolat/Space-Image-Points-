@@ -64,8 +64,91 @@
 </head>
 <body>
   <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <!-- p5.js'i henüz yükleme -->
   <script>
+    // p5.js henüz yüklenmedi, sadece buton mantığı
+    let isFullscreen = false;
+    let p5Loaded = false;
+    
+    function toggleFullscreen() {
+      if (!isFullscreen) {
+        // Tam ekrana geç
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      }
+    }
+
+    // Tam ekran durumu değişikliklerini dinle
+    function handleFullscreenChange() {
+      isFullscreen = !!(document.fullscreenElement || 
+                       document.webkitFullscreenElement || 
+                       document.mozFullScreenElement || 
+                       document.msFullscreenElement);
+      
+      if (isFullscreen && !p5Loaded) {
+        // Tam ekrana geçildi, butonu gizle
+        document.getElementById('fullscreenBtn').style.display = 'none';
+        
+        // Şimdi p5.js'i yükle ve 3 saniye sonra başlat
+        loadP5AndStart();
+      }
+    }
+
+    function loadP5AndStart() {
+      // p5.js'i dinamik olarak yükle
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js';
+      script.onload = function() {
+        p5Loaded = true;
+        
+        // 3 saniye bekle, sonra p5.js kodunu çalıştır
+        setTimeout(() => {
+          startP5Animation();
+        }, 3000);
+        
+        // Geri sayım göster
+        showCountdown();
+      };
+      document.head.appendChild(script);
+    }
+
+    function showCountdown() {
+      // Basit HTML ile geri sayım
+      const countdownDiv = document.createElement('div');
+      countdownDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        z-index: 1000;
+      `;
+      document.body.appendChild(countdownDiv);
+      
+      let countdown = 3;
+      const interval = setInterval(() => {
+        if (countdown > 0) {
+          countdownDiv.innerHTML = `<div style="font-size: 48px;">${countdown}</div><div style="font-size: 24px; margin-top: 20px;">Başlatılıyor...</div>`;
+          countdown--;
+        } else {
+          clearInterval(interval);
+          document.body.removeChild(countdownDiv);
+        }
+      }, 1000);
+    }
+
+    function startP5Animation() {
+      // Şimdi p5.js kodunu çalıştır
     // Kullanıcı tarafından sağlanan JavaScript kodu
     let stars = [];
     let spinningStars = [];
@@ -20105,229 +20188,116 @@
     let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
     let offsetY; // Görselı ortalamak için Y ekseni kaydırması
 
-    // Tam ekran fonksiyonları
-    let isFullscreen = false;
-    
-    function toggleFullscreen() {
-      if (!isFullscreen) {
-        // Tam ekrana geç
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          elem.webkitRequestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-          elem.mozRequestFullScreen();
-        } else if (elem.msRequestFullscreen) {
-          elem.msRequestFullscreen();
-        }
-      } else {
-        // Tam ekrandan çık
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
+      // Cihazın yan çevrilmesini sağlamak için eklenen kod
+      function lockScreenOrientation() {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("landscape-primary").catch(function(error) {
+            console.error("Ekran yönü kilitlenemedi: " + error);
+          });
         }
       }
-    }
 
-    // Tam ekran durumu değişikliklerini dinle
-    function handleFullscreenChange() {
-      isFullscreen = !!(document.fullscreenElement || 
-                       document.webkitFullscreenElement || 
-                       document.mozFullScreenElement || 
-                       document.msFullscreenElement);
-      
-      if (isFullscreen && !appStarted) {
-        // Tam ekrana geçildi, 3 saniye sayacını başlat
-        fullscreenStartTime = millis();
-        showCountdown = true;
-        // Butonu gizle
-        document.getElementById('fullscreenBtn').style.display = 'none';
+      // Dokunma olaylarının varsayılan davranışlarını engelle
+      function preventDefault(event) {
+        event.preventDefault();
+        event.stopPropagation();
       }
-      
-      // Canvas boyutunu güncelle
-      if (typeof resizeCanvas !== 'undefined') {
-        resizeCanvas(windowWidth, windowHeight);
+      window.addEventListener('touchstart', preventDefault, { passive: false });
+      window.addEventListener('touchend', preventDefault, { passive: false });
+      window.addEventListener('touchmove', preventDefault, { passive: false });
+
+      // 16:10 oranı için sanal boyutları hesapla
+      function calculateVirtualDimensions() {
+        // Ekran genişliğini al, 16:10 oranında yükseklik hesapla
+        virtualHeight = width * (10 / 16);
+        
+        // Eğer hesaplanan yükseklik gerçek yükseklikten küçükse, görselı ortala
+        if (virtualHeight <= height) {
+          offsetY = (height - virtualHeight) / 2;
+        } else {
+          // Eğer sanal yükseklik gerçek yükseklikten büyükse, genişliği ayarla
+          let virtualWidth = height * (16 / 10);
+          virtualHeight = height;
+          offsetY = 0;
+        }
+      }
+
+      // Koordinat dönüştürme fonksiyonu
+      function getVirtualCoordinates(normalizedX, normalizedY) {
+        return {
+          x: normalizedX * width,
+          y: normalizedY * virtualHeight + offsetY
+        };
+      }
+
+      // p5.js fonksiyonları
+      window.setup = function() {
+        createCanvas(windowWidth, windowHeight);
+        lockScreenOrientation();
+        
+        // 16:10 oranı için sanal yükseklik hesapla
         calculateVirtualDimensions();
-      }
-      
-      // Buton ikonunu güncelle
-      const btn = document.getElementById('fullscreenBtn');
-      btn.innerHTML = isFullscreen ? '⛶' : '⛶';
-      btn.title = isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran';
-    }
-
-    function startApp() {
-      appStarted = true;
-      showCountdown = false;
-      
-      // ŞİMDİ canvas'ı oluştur ve her şeyi başlat
-      createCanvas(windowWidth, windowHeight);
-      lockScreenOrientation();
-      
-      // 16:10 oranı için sanal yükseklik hesapla
-      calculateVirtualDimensions();
-      
-      window.addEventListener('resize', () => {
-        resizeCanvas(windowWidth, windowHeight);
-        calculateVirtualDimensions();
-      });
-
-      noStroke();
-      
-      // Yıldız renkleri (gerçek yıldız renklerine yakın)
-      let starColors = [
-        color(255, 255, 255), // beyaz
-        color(200, 220, 255), // mavi-beyaz
-        color(180, 180, 255), // sarı
-        color(255, 255, 255), // turuncu
-        color(200, 220, 255), // kırmızımsı
-        color(180, 180, 255) // açık mavi
-      ];
-
-      for (let i = 0; i < 400; i++) {
-        stars.push({
-          x: random(width),
-          y: random(height),
-          size: random(1, 3),
-          alpha: random(100, 255),
-          baseSpeedX: random(-0.2, 0.2),
-          baseSpeedY: random(-0.2, 0.2),
-          inertiaX: 0,
-          inertiaY: 0,
-          inertiaCounter: 0,
-          color: random(starColors)
+        
+        window.addEventListener('resize', () => {
+          resizeCanvas(windowWidth, windowHeight);
+          calculateVirtualDimensions();
         });
-      }
-    }
 
-    // Event listener'ları ekle
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        // Yıldız renkleri (gerçek yıldız renklerine yakın)
+        let starColors = [
+          color(255, 255, 255), // beyaz
+          color(200, 220, 255), // mavi-beyaz
+          color(180, 180, 255), // sarı
+          color(255, 255, 255), // turuncu
+          color(200, 220, 255), // kırmızımsı
+          color(180, 180, 255) // açık mavi
+        ];
 
-    // Buton tıklama olayı
-    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
-    document.getElementById('fullscreenBtn').addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleFullscreen();
-    });
+        for (let i = 0; i < 400; i++) {
+          stars.push({
+            x: random(width),
+            y: random(height),
+            size: random(1, 3),
+            alpha: random(100, 255),
+            baseSpeedX: random(-0.2, 0.2),
+            baseSpeedY: random(-0.2, 0.2),
+            inertiaX: 0,
+            inertiaY: 0,
+            inertiaCounter: 0,
+            color: random(starColors)
+          });
+        }
 
-    // Cihazın yan çevrilmesini sağlamak için eklenen kod
-    function lockScreenOrientation() {
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape-primary").catch(function(error) {
-          console.error("Ekran yönü kilitlenemedi: " + error);
-        });
-      }
-    }
-
-    // Dokunma olaylarının varsayılan davranışlarını engelle
-    function preventDefault(event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    window.addEventListener('touchstart', preventDefault, { passive: false });
-    window.addEventListener('touchend', preventDefault, { passive: false });
-    window.addEventListener('touchmove', preventDefault, { passive: false });
-
-    function setup() {
-      // Hiçbir şey yapma - sadece bekle
-      // Canvas bile oluşturma
-    }
-
-    // 16:10 oranı için sanal boyutları hesapla
-    function calculateVirtualDimensions() {
-      // Ekran genişliğini al, 16:10 oranında yükseklik hesapla
-      virtualHeight = width * (10 / 16);
-      
-      // Eğer hesaplanan yükseklik gerçek yükseklikten küçükse, görselı ortala
-      if (virtualHeight <= height) {
-        offsetY = (height - virtualHeight) / 2;
-      } else {
-        // Eğer sanal yükseklik gerçek yükseklikten büyükse, genişliği ayarla
-        let virtualWidth = height * (16 / 10);
-        virtualHeight = height;
-        offsetY = 0;
-      }
-    }
-
-    // Koordinat dönüştürme fonksiyonu
-    function getVirtualCoordinates(normalizedX, normalizedY) {
-      return {
-        x: normalizedX * width,
-        y: normalizedY * virtualHeight + offsetY
+        noStroke();
       };
-    }
-    
-    // Olay dinleyicileri
-    function mousePressed() {
-      isMouseActive = true;
-    }
-
-    function mouseReleased() {
-      isMouseActive = false;
-    }
-
-    function touchStarted() {
-      isTouchActive = true;
-      return false; // varsayılan davranışı engelle
-    }
-
-    function touchEnded() {
-      isTouchActive = false;
-      return false; // varsayılan davranışı engelle
-    }
-
-
-    function draw() {
-      // Eğer uygulama henüz başlamamışsa - hiçbir şey yapma!
-      if (!appStarted) {
-        if (showCountdown) {
-          // Canvas henüz yoksa oluştur (sadece geri sayım için)
-          if (!document.querySelector('canvas')) {
-            createCanvas(windowWidth, windowHeight);
-          }
-          
-          // Arka plan siyah
-          background(0);
-          
-          // 3 saniye geri sayım
-          let elapsed = (millis() - fullscreenStartTime) / 1000;
-          let remaining = Math.max(0, 3 - elapsed);
-          
-          if (remaining > 0) {
-            // Geri sayım göster
-            fill(255);
-            textAlign(CENTER, CENTER);
-            textSize(48);
-            text(Math.ceil(remaining), width / 2, height / 2);
-            textSize(24);
-            text("Başlatılıyor...", width / 2, height / 2 + 60);
-          } else {
-            // 3 saniye bitti, uygulamayı başlat
-            startApp();
-          }
-        }
-        return; // Kodun geri kalanını hiç çalıştırma
-      }
-
-      // ---- BURADAN SONRA TÜM ORİJİNAL KOD ----
       
-      // Arka plan normalde siyah, patlamadan sonra kademeli kararma
-      background(0);
-      if (explosionTriggered) {
-        if (bgFade < 255) bgFade += 0.2;
-        fill(0, bgFade);
-        rect(0, 0, width, height);
-      }
+      // Olay dinleyicileri
+      window.mousePressed = function() {
+        isMouseActive = true;
+      };
+
+      window.mouseReleased = function() {
+        isMouseActive = false;
+      };
+
+      window.touchStarted = function() {
+        isTouchActive = true;
+        return false; // varsayılan davranışı engelle
+      };
+
+      window.touchEnded = function() {
+        isTouchActive = false;
+        return false; // varsayılan davranışı engelle
+      };
+
+      window.draw = function() {
+        // Arka plan normalde siyah, patlamadan sonra kademeli kararma
+        background(0);
+        if (explosionTriggered) {
+          if (bgFade < 255) bgFade += 0.2;
+          fill(0, bgFade);
+          rect(0, 0, width, height);
+        }
 
       let tx = mouseX;
       let ty = mouseY;
@@ -20682,8 +20652,22 @@
           fill(255, s.brightness);
           ellipse(s.x, s.y, s.size);
         }
-      }
-    }
+      }; // draw fonksiyonunun sonu
+    } // startP5Animation fonksiyonunun sonu
+
+    // Event listener'ları ekle
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    // Buton tıklama olayı
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+    document.getElementById('fullscreenBtn').addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFullscreen();
+    });
   </script>
 </body>
 </html>
