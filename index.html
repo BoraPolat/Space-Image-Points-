@@ -20142,6 +20142,14 @@
                        document.mozFullScreenElement || 
                        document.msFullscreenElement);
       
+      if (isFullscreen && !appStarted) {
+        // Tam ekrana geçildi, 3 saniye sayacını başlat
+        fullscreenStartTime = millis();
+        showCountdown = true;
+        // Butonu gizle
+        document.getElementById('fullscreenBtn').style.display = 'none';
+      }
+      
       // Canvas boyutunu güncelle
       if (typeof resizeCanvas !== 'undefined') {
         resizeCanvas(windowWidth, windowHeight);
@@ -20152,6 +20160,36 @@
       const btn = document.getElementById('fullscreenBtn');
       btn.innerHTML = isFullscreen ? '⛶' : '⛶';
       btn.title = isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran';
+    }
+
+    function startApp() {
+      appStarted = true;
+      showCountdown = false;
+      
+      // Yıldız renkleri (gerçek yıldız renklerine yakın)
+      let starColors = [
+        color(255, 255, 255), // beyaz
+        color(200, 220, 255), // mavi-beyaz
+        color(180, 180, 255), // sarı
+        color(255, 255, 255), // turuncu
+        color(200, 220, 255), // kırmızımsı
+        color(180, 180, 255) // açık mavi
+      ];
+
+      for (let i = 0; i < 400; i++) {
+        stars.push({
+          x: random(width),
+          y: random(height),
+          size: random(1, 3),
+          alpha: random(100, 255),
+          baseSpeedX: random(-0.2, 0.2),
+          baseSpeedY: random(-0.2, 0.2),
+          inertiaX: 0,
+          inertiaY: 0,
+          inertiaCounter: 0,
+          color: random(starColors)
+        });
+      }
     }
 
     // Event listener'ları ekle
@@ -20198,31 +20236,7 @@
         calculateVirtualDimensions();
       });
 
-      // Yıldız renkleri (gerçek yıldız renklerine yakın)
-      let starColors = [
-        color(255, 255, 255), // beyaz
-        color(200, 220, 255), // mavi-beyaz
-        color(180, 180, 255), // sarı
-        color(255, 255, 255), // turuncu
-        color(200, 220, 255), // kırmızımsı
-        color(180, 180, 255) // açık mavi
-      ];
-
-      for (let i = 0; i < 400; i++) {
-        stars.push({
-          x: random(width),
-          y: random(height),
-          size: random(1, 3),
-          alpha: random(100, 255),
-          baseSpeedX: random(-0.2, 0.2),
-          baseSpeedY: random(-0.2, 0.2),
-          inertiaX: 0,
-          inertiaY: 0,
-          inertiaCounter: 0,
-          color: random(starColors)
-        });
-      }
-
+      // Yıldızları henüz oluşturma, sadece setup
       noStroke();
     }
 
@@ -20271,8 +20285,35 @@
 
 
     function draw() {
-      // Arka plan normalde siyah, patlamadan sonra kademeli kararma
+      // Arka plan her zaman siyah
       background(0);
+
+      // Eğer uygulama henüz başlamamışsa
+      if (!appStarted) {
+        if (showCountdown) {
+          // 3 saniye geri sayım
+          let elapsed = (millis() - fullscreenStartTime) / 1000;
+          let remaining = Math.max(0, 3 - elapsed);
+          
+          if (remaining > 0) {
+            // Geri sayım göster
+            fill(255);
+            textAlign(CENTER, CENTER);
+            textSize(48);
+            text(Math.ceil(remaining), width / 2, height / 2);
+            textSize(24);
+            text("Başlatılıyor...", width / 2, height / 2 + 60);
+          } else {
+            // 3 saniye bitti, uygulamayı başlat
+            startApp();
+          }
+        }
+        return; // Uygulamanın geri kalanını çalıştırma
+      }
+
+      // Aşağısı orijinal draw kodunun devamı...
+      
+      // Patlamadan sonra kademeli kararma
       if (explosionTriggered) {
         if (bgFade < 255) bgFade += 0.2;
         fill(0, bgFade);
