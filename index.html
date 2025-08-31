@@ -20462,23 +20462,28 @@
     
     // Function to handle the fullscreen logic
     const toggleFullscreen = () => {
-      const canvas = document.querySelector('canvas');
+      // Use the html element for a more reliable full-screen request
+      const element = document.documentElement;
       if (!document.fullscreenElement) {
         // Use browser-specific prefixes for better compatibility
-        if (canvas.requestFullscreen) {
-          canvas.requestFullscreen();
-        } else if (canvas.webkitRequestFullscreen) { /* Safari */
-          canvas.webkitRequestFullscreen();
-        } else if (canvas.msRequestFullscreen) { /* IE11 */
-          canvas.msRequestFullscreen();
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) { /* Safari & Chrome */
+          element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) { /* IE11 */
+          element.msRequestFullscreen();
+        } else if (element.mozRequestFullScreen) { /* Firefox */
+          element.mozRequestFullScreen();
         }
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
+        } else if (document.webkitExitFullscreen) { /* Safari & Chrome */
           document.webkitExitFullscreen();
         } else if (document.msExitFullscreen) { /* IE11 */
           document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) { /* Firefox */
+          document.mozCancelFullScreen();
         }
       }
     };
