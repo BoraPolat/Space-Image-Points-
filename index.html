@@ -23,15 +23,16 @@
     }
     #fullscreenBtn {
       position: fixed;
-      top: 15px;
-      left: 15px;
-      width: 40px;
-      height: 40px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
       background: rgba(255, 255, 255, 0.15);
       border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
+      border-radius: 16px;
       color: white;
-      font-size: 16px;
+      font-size: 24px;
       cursor: pointer;
       z-index: 1000;
       display: flex;
@@ -46,33 +47,36 @@
     #fullscreenBtn:hover {
       background: rgba(255, 255, 255, 0.25);
       border-color: rgba(255, 255, 255, 0.5);
-      transform: scale(1.05);
+      transform: translate(-50%, -50%) scale(1.05);
     }
     #fullscreenBtn:active {
-      transform: scale(0.95);
+      transform: translate(-50%, -50%) scale(0.95);
       background: rgba(255, 255, 255, 0.35);
     }
-    /* Tam ekran modunda buton daha şeffaf olsun */
-    body:fullscreen #fullscreenBtn,
-    body:-webkit-full-screen #fullscreenBtn,
-    body:-moz-full-screen #fullscreenBtn,
-    body:-ms-fullscreen #fullscreenBtn {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.15);
+    #countdown {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      z-index: 1000;
+      display: none;
     }
   </style>
 </head>
 <body>
   <button id="fullscreenBtn" title="Tam Ekran">⛶</button>
-  <!-- p5.js'i henüz yükleme -->
+  <div id="countdown"></div>
+  
   <script>
-    // p5.js henüz yüklenmedi, sadece buton mantığı
     let isFullscreen = false;
     let p5Loaded = false;
+    let animationStarted = false;
     
     function toggleFullscreen() {
       if (!isFullscreen) {
-        // Tam ekrana geç
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
           elem.requestFullscreen();
@@ -86,61 +90,31 @@
       }
     }
 
-    // Tam ekran durumu değişikliklerini dinle
     function handleFullscreenChange() {
       isFullscreen = !!(document.fullscreenElement || 
                        document.webkitFullscreenElement || 
                        document.mozFullScreenElement || 
                        document.msFullscreenElement);
       
-      if (isFullscreen && !p5Loaded) {
-        // Tam ekrana geçildi, butonu gizle
+      if (isFullscreen && !animationStarted) {
+        animationStarted = true;
+        
+        // Butonu gizle
         document.getElementById('fullscreenBtn').style.display = 'none';
         
-        // Şimdi p5.js'i yükle ve başlat
+        // Geri sayımı başlat
+        showCountdown();
+        
+        // p5.js'i yükle
         loadP5AndStart();
       }
     }
 
-    function loadP5AndStart() {
-      // Önce geri sayımı göster
-      showCountdown();
-      
-      // p5.js'i dinamik olarak yükle
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js';
-      script.onload = function() {
-        p5Loaded = true;
-        console.log('p5.js yüklendi, 3 saniye bekleniyor...');
-        
-        // 3 saniye bekle, sonra p5.js kodunu çalıştır
-        setTimeout(() => {
-          console.log('3 saniye bitti, animasyon başlıyor...');
-          startP5Animation();
-        }, 3000);
-      };
-      document.head.appendChild(script);
-    }
-
     function showCountdown() {
-      // Basit HTML ile geri sayım
-      const countdownDiv = document.createElement('div');
-      countdownDiv.id = 'countdown';
-      countdownDiv.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        z-index: 1000;
-      `;
-      document.body.appendChild(countdownDiv);
+      const countdownDiv = document.getElementById('countdown');
+      countdownDiv.style.display = 'block';
       
       let countdown = 3;
-      
-      // İlk değeri hemen göster
       countdownDiv.innerHTML = `<div style="font-size: 48px;">${countdown}</div><div style="font-size: 24px; margin-top: 20px;">Başlatılıyor...</div>`;
       
       const interval = setInterval(() => {
@@ -149,45 +123,55 @@
           countdownDiv.innerHTML = `<div style="font-size: 48px;">${countdown}</div><div style="font-size: 24px; margin-top: 20px;">Başlatılıyor...</div>`;
         } else {
           clearInterval(interval);
-          // Geri sayım bitti, div'i kaldır
-          if (document.getElementById('countdown')) {
-            document.body.removeChild(countdownDiv);
-          }
+          countdownDiv.style.display = 'none';
         }
       }, 1000);
     }
 
+    function loadP5AndStart() {
+      // p5.js'i dinamik olarak yükle
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js';
+      script.onload = function() {
+        p5Loaded = true;
+        
+        // 3 saniye bekle, sonra p5.js kodunu çalıştır
+        setTimeout(() => {
+          startP5Animation();
+        }, 3000);
+      };
+      document.head.appendChild(script);
+    }
+
     function startP5Animation() {
-      // Şimdi p5.js kodunu çalıştır
-    // Kullanıcı tarafından sağlanan JavaScript kodu
-    let stars = [];
-    let spinningStars = [];
-    let holdTime = 0;
-    let spinning = false;
-    let explosionTriggered = false;
-    let explosionStartTime = 0;
-    const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
+      // Tüm p5.js animasyon kodu burada başlar
+      let stars = [];
+      let spinningStars = [];
+      let holdTime = 0;
+      let spinning = false;
+      let explosionTriggered = false;
+      let explosionStartTime = 0;
+      const transitionTime = 2000;
 
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
+      let realStars = [];
+      let fadeStars = [];
+      let fadeTimer = 0;
+      let centerStar = null;
+      let bgFade = 0;
 
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+      let starsToSpin = [];
+      let spinTimer = 0;
 
-    // Yeni değişkenler
-    let secondExplosionTriggered = false;
-    let thirdExplosionTriggered = false;
-    let secondExplosionStartTime = 0;
-    let thirdExplosionStartTime = 0;
-    let affectedStars = []; // ikinci patlamadan etkilenen yıldızlar
-    let waveRadius = 0; // güç dalgası yarıçapı
-    let waveVisible = false;
-    let realStarsCreatedTime = 0; // realStars oluşturulduğu zaman
+      let secondExplosionTriggered = false;
+      let thirdExplosionTriggered = false;
+      let secondExplosionStartTime = 0;
+      let thirdExplosionStartTime = 0;
+      let affectedStars = [];
+      let waveRadius = 0;
+      let waveVisible = false;
+      let realStarsCreatedTime = 0;
 
-    let allPoints = [
+      let allPoints = [
     {
         "x": 0.2687,
         "y": 0.395
@@ -20188,17 +20172,14 @@
         "x": 0.5227,
         "y": 0.5713
     }
-]; // Boş dizi
+];
 
-    // Yeni eklenen değişkenler
-    let isMouseActive = false;
-    let isTouchActive = false;
+      let isMouseActive = false;
+      let isTouchActive = false;
 
-    // Ekran oranı düzeltmesi için değişkenler
-    let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
-    let offsetY; // Görselı ortalamak için Y ekseni kaydırması
+      let virtualHeight;
+      let offsetY;
 
-      // Cihazın yan çevrilmesini sağlamak için eklenen kod
       function lockScreenOrientation() {
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock("landscape-primary").catch(function(error) {
@@ -20207,7 +20188,6 @@
         }
       }
 
-      // Dokunma olaylarının varsayılan davranışlarını engelle
       function preventDefault(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -20216,23 +20196,18 @@
       window.addEventListener('touchend', preventDefault, { passive: false });
       window.addEventListener('touchmove', preventDefault, { passive: false });
 
-      // 16:10 oranı için sanal boyutları hesapla
       function calculateVirtualDimensions() {
-        // Ekran genişliğini al, 16:10 oranında yükseklik hesapla
         virtualHeight = width * (10 / 16);
         
-        // Eğer hesaplanan yükseklik gerçek yükseklikten küçükse, görselı ortala
         if (virtualHeight <= height) {
           offsetY = (height - virtualHeight) / 2;
         } else {
-          // Eğer sanal yükseklik gerçek yükseklikten büyükse, genişliği ayarla
           let virtualWidth = height * (16 / 10);
           virtualHeight = height;
           offsetY = 0;
         }
       }
 
-      // Koordinat dönüştürme fonksiyonu
       function getVirtualCoordinates(normalizedX, normalizedY) {
         return {
           x: normalizedX * width,
@@ -20240,12 +20215,10 @@
         };
       }
 
-      // p5.js fonksiyonları
       window.setup = function() {
         createCanvas(windowWidth, windowHeight);
         lockScreenOrientation();
         
-        // 16:10 oranı için sanal yükseklik hesapla
         calculateVirtualDimensions();
         
         window.addEventListener('resize', () => {
@@ -20253,14 +20226,13 @@
           calculateVirtualDimensions();
         });
 
-        // Yıldız renkleri (gerçek yıldız renklerine yakın)
         let starColors = [
-          color(255, 255, 255), // beyaz
-          color(200, 220, 255), // mavi-beyaz
-          color(180, 180, 255), // sarı
-          color(255, 255, 255), // turuncu
-          color(200, 220, 255), // kırmızımsı
-          color(180, 180, 255) // açık mavi
+          color(255, 255, 255),
+          color(200, 220, 255),
+          color(180, 180, 255),
+          color(255, 255, 255),
+          color(200, 220, 255),
+          color(180, 180, 255)
         ];
 
         for (let i = 0; i < 400; i++) {
@@ -20281,7 +20253,6 @@
         noStroke();
       };
       
-      // Olay dinleyicileri
       window.mousePressed = function() {
         isMouseActive = true;
       };
@@ -20292,16 +20263,15 @@
 
       window.touchStarted = function() {
         isTouchActive = true;
-        return false; // varsayılan davranışı engelle
+        return false;
       };
 
       window.touchEnded = function() {
         isTouchActive = false;
-        return false; // varsayılan davranışı engelle
+        return false;
       };
 
       window.draw = function() {
-        // Arka plan normalde siyah, patlamadan sonra kademeli kararma
         background(0);
         if (explosionTriggered) {
           if (bgFade < 255) bgFade += 0.2;
@@ -20309,361 +20279,334 @@
           rect(0, 0, width, height);
         }
 
-      let tx = mouseX;
-      let ty = mouseY;
-      let isPressed = isMouseActive || isTouchActive; // Yeni değişkenlerle kontrol
+        let tx = mouseX;
+        let ty = mouseY;
+        let isPressed = isMouseActive || isTouchActive;
 
-      if (touches.length > 0) {
-        tx = touches[0].x;
-        ty = touches[0].y;
-      }
-
-      // Sadece basılı tutuluyorsa holdTime artar, yoksa sıfırlanır
-      if (isPressed) {
-        holdTime += deltaTime / 1000;
-      } else {
-        holdTime = 0;
-      }
-
-      // Normal yıldızlar
-      for (let star of stars) {
-        // centerStar etkilenmesin
-        if (star === centerStar) {
-          fill(255);
-          ellipse(star.x, star.y, star.size * 2);
-          continue;
+        if (touches.length > 0) {
+          tx = touches[0].x;
+          ty = touches[0].y;
         }
 
-        // Yalnızca basılı tutuluyorsa interaksiyon başlar
         if (isPressed) {
-          let d = dist(tx, ty, star.x, star.y);
-          if (d < 250 && !spinning) {
-            let angle = atan2(ty - star.y, tx - star.x);
-            let pull = 0.5;
-            star.inertiaX = cos(angle) * pull;
-            star.inertiaY = sin(angle) * pull;
-            star.inertiaCounter = 30;
-          } else {
-            if (star.inertiaCounter > 0) star.inertiaCounter--;
-            else {
-              star.inertiaX *= 0.95;
-              star.inertiaY *= 0.95;
+          holdTime += deltaTime / 1000;
+        } else {
+          holdTime = 0;
+        }
+
+        for (let star of stars) {
+          if (star === centerStar) {
+            fill(255);
+            ellipse(star.x, star.y, star.size * 2);
+            continue;
+          }
+
+          if (isPressed) {
+            let d = dist(tx, ty, star.x, star.y);
+            if (d < 250 && !spinning) {
+              let angle = atan2(ty - star.y, tx - star.x);
+              let pull = 0.5;
+              star.inertiaX = cos(angle) * pull;
+              star.inertiaY = sin(angle) * pull;
+              star.inertiaCounter = 30;
+            } else {
+              if (star.inertiaCounter > 0) star.inertiaCounter--;
+              else {
+                star.inertiaX *= 0.95;
+                star.inertiaY *= 0.95;
+              }
             }
+          }
+
+          star.x += star.baseSpeedX + star.inertiaX;
+          star.y += star.baseSpeedY + star.inertiaY;
+
+          if (star.x < 0) star.x = width;
+          if (star.x > width) star.x = 0;
+          if (star.y < 0) star.y = height;
+          if (star.y > height) star.y = 0;
+          
+          if (spinning && spinningStars.length > 0) {
+            let closest = null;
+            let minDist = 9999;
+            let strongestStar = null;
+
+            for (let s of spinningStars) {
+              let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
+              let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
+              let distTo = dist(star.x, star.y, cx, cy);
+              if (distTo < minDist) {
+                minDist = distTo;
+                closest = { x: cx, y: cy };
+                strongestStar = s;
+              }
+            }
+
+            if (closest && minDist < 200) {
+              let angle = atan2(closest.y - star.y, closest.x - star.x);
+              let basePull = map(minDist, 0, 200, 0.5, 0.02);
+              let pull = basePull * strongestStar.speedMultiplier;
+              star.inertiaX = cos(angle) * pull;
+              star.inertiaY = sin(angle) * pull;
+              star.inertiaCounter = 30;
+            }
+          }
+
+          fill(red(star.color), green(star.color), blue(star.color), star.alpha);
+          ellipse(star.x, star.y, star.size);
+        }
+
+        if (holdTime >= 5 && !spinning) {
+          spinning = true;
+          starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
+          centerStar = starsToSpin[0];
+          centerStar.size = 2;
+        }
+
+        if (spinning && starsToSpin.length > 0) {
+          spinTimer += deltaTime / 1000;
+          if (spinTimer >= 0.02) {
+            let star = starsToSpin.shift();
+            spinningStars.push({
+              x: star.x,
+              y: star.y,
+              size: star.size,
+              alpha: star.alpha,
+              color: star.color,
+              angle: random(TWO_PI),
+              radius: random(80, 120),
+              baseSpeed: 0.02,
+              speedMultiplier: 0,
+              acceleration: 0.0012,
+              maxMultiplier: 1.5,
+              offsetX: random(-20, 20),
+              offsetY: random(-20, 20),
+              targetX: width / 2,
+              targetY: height / 2,
+              vx: 0,
+              vy: 0
+            });
+            spinTimer = 0;
           }
         }
 
-        star.x += star.baseSpeedX + star.inertiaX;
-        star.y += star.baseSpeedY + star.inertiaY;
-
-        if (star.x < 0) star.x = width;
-        if (star.x > width) star.x = 0;
-        if (star.y < 0) star.y = height;
-        if (star.y > height) star.y = 0;
-        
-        if (spinning && spinningStars.length > 0) {
-          let closest = null;
-          let minDist = 9999;
-          let strongestStar = null;
-
+        if (spinning) {
           for (let s of spinningStars) {
+            s.x += (s.targetX - s.x) * 0.008;
+            s.y += (s.targetY - s.y) * 0.008;
+
+            if (!explosionTriggered) s.speedMultiplier += s.acceleration;
+
+            s.angle += s.baseSpeed * s.speedMultiplier;
             let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
             let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
-            let distTo = dist(star.x, star.y, cx, cy);
-            if (distTo < minDist) {
-              minDist = distTo;
-              closest = { x: cx, y: cy };
-              strongestStar = s;
-            }
-          }
 
-          if (closest && minDist < 200) {
-            let angle = atan2(closest.y - star.y, closest.x - star.x);
-            let basePull = map(minDist, 0, 200, 0.5, 0.02);
-            let pull = basePull * strongestStar.speedMultiplier;
-            star.inertiaX = cos(angle) * pull;
-            star.inertiaY = sin(angle) * pull;
-            star.inertiaCounter = 30;
-          }
-        }
-
-        fill(red(star.color), green(star.color), blue(star.color), star.alpha);
-        ellipse(star.x, star.y, star.size);
-      }
-
-      // 5 saniye basılı ise spinning başlatacak yıldızları sıraya al
-      if (holdTime >= 5 && !spinning) {
-        spinning = true;
-        starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
-        centerStar = starsToSpin[0]; // özel yıldız
-        centerStar.size = 2; // orta boyut olarak sabitlendi
-      }
-
-      // Sıradaki yıldızları 0.02 saniyede bir spinningStars dizisine ekle (daha da hızlı)
-      if (spinning && starsToSpin.length > 0) {
-        spinTimer += deltaTime / 1000;
-        if (spinTimer >= 0.02) {
-          let star = starsToSpin.shift();
-          spinningStars.push({
-            x: star.x,
-            y: star.y,
-            size: star.size,
-            alpha: star.alpha,
-            color: star.color,
-            angle: random(TWO_PI),
-            radius: random(80, 120),
-            baseSpeed: 0.02, // eski dönüş hızına dön
-            speedMultiplier: 0,
-            acceleration: 0.0012, // biraz daha hızlı hızlanma (orta seviye)
-            maxMultiplier: 1.5, // daha erken patlama
-            offsetX: random(-20, 20),
-            offsetY: random(-20, 20),
-            targetX: width / 2,
-            targetY: height / 2,
-            vx: 0,
-            vy: 0
-          });
-          spinTimer = 0;
-        }
-      }
-
-      // Dönen yıldızlar ve patlama
-      if (spinning) {
-        for (let s of spinningStars) {
-          s.x += (s.targetX - s.x) * 0.008; // yörüngeye daha hızlı girme
-          s.y += (s.targetY - s.y) * 0.008;
-
-          if (!explosionTriggered) s.speedMultiplier += s.acceleration;
-
-          s.angle += s.baseSpeed * s.speedMultiplier;
-          let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
-          let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
-
-          // Parlaklık kontrolü - patlamadan 2 saniye öncesinden itibaren
-          let brightness = s.alpha;
-          let brightnessMultiplier = 1;
-          
-          if (!explosionTriggered) {
-            // Patlama eşiğine ne kadar yakınız?
-            let progressToExplosion = s.speedMultiplier / s.maxMultiplier;
+            let brightness = s.alpha;
+            let brightnessMultiplier = 1;
             
-            // Son 2 saniye için parlaklık artışı (yaklaşık speedMultiplier > 0.8 olduğunda)
-            if (progressToExplosion > 0.53) { // 0.8/1.5 = 0.53
-              let brightnessProgress = (progressToExplosion - 0.53) / (1 - 0.53); // 0-1 arası
-              brightnessMultiplier = 1 + brightnessProgress * 2; // 1x'den 3x'e kadar parlaklık artışı
-            }
-          }
-
-          fill(red(s.color), green(s.color), blue(s.color), brightness * brightnessMultiplier);
-          ellipse(cx, cy, s.size);
-
-          if (s.speedMultiplier >= s.maxMultiplier && !explosionTriggered) {
-            explosionTriggered = true;
-            for (let ex of spinningStars) {
-              let angle = random(TWO_PI);
-              let force = random(5, 15);
-              ex.vx = cos(angle) * force;
-              ex.vy = sin(angle) * force;
+            if (!explosionTriggered) {
+              let progressToExplosion = s.speedMultiplier / s.maxMultiplier;
+              
+              if (progressToExplosion > 0.53) {
+                let brightnessProgress = (progressToExplosion - 0.53) / (1 - 0.53);
+                brightnessMultiplier = 1 + brightnessProgress * 2;
+              }
             }
 
-            fadeStars = stars.filter(st => st !== centerStar).map(st => ({ ...st, fading: false, fadeAlpha: st.alpha }));
-          }
+            fill(red(s.color), green(s.color), blue(s.color), brightness * brightnessMultiplier);
+            ellipse(cx, cy, s.size);
 
-          if (explosionTriggered) {
+            if (s.speedMultiplier >= s.maxMultiplier && !explosionTriggered) {
+              explosionTriggered = true;
+              for (let ex of spinningStars) {
+                let angle = random(TWO_PI);
+                let force = random(5, 15);
+                ex.vx = cos(angle) * force;
+                ex.vy = sin(angle) * force;
+              }
+
+              fadeStars = stars.filter(st => st !== centerStar).map(st => ({ ...st, fading: false, fadeAlpha: st.alpha }));
+            }
+
+            if (explosionTriggered) {
+              s.x += s.vx;
+              s.y += s.vy;
+              s.alpha *= 0.9;
+            }
+          }
+        }
+
+        if (fadeStars.length > 0 && explosionTriggered) {
+          let totalTime = 12;
+          let starsPerFrame = fadeStars.length / (totalTime * 60);
+
+          for (let i = fadeStars.length - 1; i >= 0; i--) {
+            let st = fadeStars[i];
+
+            st.fadeAlpha -= 255 / (totalTime * 60);
+            if (st.fadeAlpha < 0) st.fadeAlpha = 0;
+
+            if (st.fadeAlpha <= 0) {
+              fadeStars.splice(i, 1);
+              stars.splice(stars.indexOf(st), 1);
+            } else {
+              fill(red(st.color), green(st.color), blue(st.color), st.fadeAlpha);
+              ellipse(st.x, st.y, st.size);
+            }
+          }
+        }
+
+        if (centerStar) {
+          centerStar.x += (width / 2 - centerStar.x) * 0.0015;
+          centerStar.y += (height / 2 - centerStar.y) * 0.0015;
+
+          if (!centerStar.particles) centerStar.particles = [];
+          if (!centerStar.explosionDone) centerStar.explosionDone = false;
+          if (!centerStar.waitStart) centerStar.waitStart = false;
+
+          if (explosionTriggered && fadeStars.length === 0) {
+            if (!centerStar.startTime) centerStar.startTime = millis();
+
+            let elapsed = (millis() - centerStar.startTime) / 1000;
+            let baseSize = centerStar.size * 1.5;
+            let currentSize = baseSize;
+            let alpha = 255;
+
+            if (elapsed < 3) {
+              currentSize = baseSize;
+            } else if (elapsed >= 3 && elapsed < 5) {
+              let t = (elapsed - 3) / 2.0;
+              currentSize = lerp(baseSize, baseSize * 3, t);
+            } else if (elapsed >= 5 && elapsed < 15) {
+              currentSize = baseSize * 3;
+              let t = (elapsed - 5);
+              let cycle = floor(t / 2);
+              if (cycle < 5) {
+                let phase = (t % 2) / 2;
+                alpha = lerp(255, 128, sin(phase * PI));
+              } else {
+                alpha = 255;
+                if (!centerStar.waitStart) centerStar.waitStart = millis();
+              }
+            } else if (!centerStar.explosionDone) {
+              let waitElapsed = (millis() - centerStar.waitStart) / 1000;
+              if (!centerStar.waitStart) centerStar.waitStart = millis();
+
+              if (waitElapsed >= 2) {
+                if (centerStar.particles.length === 0) {
+                  for (let i = 0; i < 400; i++) {
+                    let angle = random(TWO_PI);
+                    let speed = random(3, 16);
+                    centerStar.particles.push({
+                      x: centerStar.x,
+                      y: centerStar.y,
+                      vx: cos(angle) * speed,
+                      vy: sin(angle) * speed,
+                      size: random(2, 5),
+                      alpha: 255
+                    });
+                  }
+                  for (let i = 0; i < 5000; i++) {
+                    let angle = random(TWO_PI);
+                    let speed = random(3, 16);
+                    realStars.push({
+                      x: centerStar.x,
+                      y: centerStar.y,
+                      vx: cos(angle) * speed,
+                      vy: sin(angle) * speed,
+                      size: random(2, 5),
+                      targetIndex: i,
+                      brightness: 255,
+                      moveStartTime: 0,
+                      movingToTarget: false
+                    });
+                  }
+                  realStarsCreatedTime = millis();
+                }
+
+                currentSize = centerStar.size * 3;
+                fill(255, 200, 150, 180);
+                ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
+
+                for (let i = 0; i < centerStar.particles.length; i++) {
+                  let p = centerStar.particles[i];
+                  p.vx *= 0.95;
+                  p.vy *= 0.95;
+                  p.vx += random(-0.1, 0.1);
+                  p.vy += random(-0.1, 0.1);
+                  p.x += p.vx;
+                  p.y += p.vy;
+                  p.alpha -= 4;
+                  fill(255, p.alpha);
+                  ellipse(p.x, p.y, p.size);
+                }
+
+                centerStar.explosionDone = true;
+              }
+            }
+
+            fill(255, alpha);
+            ellipse(centerStar.x, centerStar.y, currentSize);
+          } else {
+            fill(255);
+            ellipse(centerStar.x, centerStar.y, centerStar.size * 2);
+          }
+        }
+
+        if (centerStar && centerStar.explosionDone && realStarsCreatedTime > 0) {
+          const elapsedSinceRealStars = millis() - realStarsCreatedTime;
+          
+          for (let i = 0; i < realStars.length; i++) {
+            let s = realStars[i];
+
+            if (elapsedSinceRealStars < 10000) {
+              s.vx *= 0.98;
+              s.vy *= 0.98;
+              s.vx += random(-0.05, 0.05);
+              s.vy += random(-0.05, 0.05);
+            } else {
+              if (!s.movingToTarget) {
+                s.movingToTarget = true;
+                s.moveStartTime = millis();
+              }
+              
+              const virtualCoords = getVirtualCoordinates(
+                allPoints[s.targetIndex].x, 
+                allPoints[s.targetIndex].y
+              );
+              const targetX = virtualCoords.x;
+              const targetY = virtualCoords.y;
+
+              const dx = targetX - s.x;
+              const dy = targetY - s.y;
+              const distance = sqrt(dx * dx + dy * dy);
+
+              if (distance > 50) {
+                let timeSinceStart = millis() - s.moveStartTime;
+                let accelerationFactor = map(timeSinceStart, 0, 8000, 0.005, 1.0);
+                accelerationFactor = constrain(accelerationFactor, 0.005, 1.0);
+                
+                const baseSpeed = 0.05;
+                const speed = baseSpeed * accelerationFactor;
+                s.vx = (dx / distance) * speed * distance * 0.1;
+                s.vy = (dy / distance) * speed * distance * 0.1;
+              } else {
+                s.vx = 0;
+                s.vy = 0;
+                s.x = targetX;
+                s.y = targetY;
+              }
+            }
+
             s.x += s.vx;
             s.y += s.vy;
-            s.alpha *= 0.9; // Patlama sonrası normal alpha azalması
+
+            fill(255, s.brightness);
+            ellipse(s.x, s.y, s.size);
           }
         }
-      }
-
-      // Fade efekti (sıra sıra, 12 saniyede tüm yıldızlar)
-      if (fadeStars.length > 0 && explosionTriggered) {
-        let totalTime = 12; // saniye cinsinden toplam süre
-        let starsPerFrame = fadeStars.length / (totalTime * 60); // 60 fps varsayımıyla
-
-        for (let i = fadeStars.length - 1; i >= 0; i--) {
-          let st = fadeStars[i];
-
-          // Her karede sadece starsPerFrame kadar alpha düşürüyoruz
-          st.fadeAlpha -= 255 / (totalTime * 60);
-          if (st.fadeAlpha < 0) st.fadeAlpha = 0;
-
-          if (st.fadeAlpha <= 0) {
-            fadeStars.splice(i, 1);
-            stars.splice(stars.indexOf(st), 1);
-          } else {
-            fill(red(st.color), green(st.color), blue(st.color), st.fadeAlpha);
-            ellipse(st.x, st.y, st.size);
-          }
-        }
-      }
-
-      if (centerStar) {
-        // centerStar ekran ortasına ilerliyor
-        centerStar.x += (width / 2 - centerStar.x) * 0.0015;
-        centerStar.y += (height / 2 - centerStar.y) * 0.0015;
-
-        if (!centerStar.particles) centerStar.particles = [];
-        if (!centerStar.explosionDone) centerStar.explosionDone = false;
-        if (!centerStar.waitStart) centerStar.waitStart = false;
-
-        // Tüm fadeStars bittiğinde efekt başlasın
-        if (explosionTriggered && fadeStars.length === 0) {
-          if (!centerStar.startTime) centerStar.startTime = millis();
-
-          let elapsed = (millis() - centerStar.startTime) / 1000;
-          let baseSize = centerStar.size * 1.5;
-          let currentSize = baseSize;
-          let alpha = 255;
-
-          if (elapsed < 3) {
-            currentSize = baseSize;
-          } else if (elapsed >= 3 && elapsed < 5) {
-            let t = (elapsed - 3) / 2.0;
-            currentSize = lerp(baseSize, baseSize * 3, t);
-          } else if (elapsed >= 5 && elapsed < 15) {
-            currentSize = baseSize * 3;
-            let t = (elapsed - 5);
-            let cycle = floor(t / 2);
-            if (cycle < 5) {
-              let phase = (t % 2) / 2;
-              alpha = lerp(255, 128, sin(phase * PI));
-            } else {
-              alpha = 255;
-              if (!centerStar.waitStart) centerStar.waitStart = millis();
-            }
-          } else if (!centerStar.explosionDone) {
-            let waitElapsed = (millis() - centerStar.waitStart) / 1000;
-            if (!centerStar.waitStart) centerStar.waitStart = millis();
-
-            if (waitElapsed >= 2) {
-              // Patlama ve gerçek yıldızları oluştur
-              if (centerStar.particles.length === 0) {
-                for (let i = 0; i < 400; i++) { // daha fazla parçacık
-                  let angle = random(TWO_PI);
-                  let speed = random(3, 16); // hız aralığını genişlettik
-                  centerStar.particles.push({
-                    x: centerStar.x,
-                    y: centerStar.y,
-                    vx: cos(angle) * speed,
-                    vy: sin(angle) * speed,
-                    size: random(2, 5),
-                    alpha: 255
-                  });
-                }
-                for (let i = 0; i < 5000; i++) { // gerçek yıldızları da ekleyelim
-                  let angle = random(TWO_PI);
-                  let speed = random(3, 16);
-                  realStars.push({
-                    x: centerStar.x,
-                    y: centerStar.y,
-                    vx: cos(angle) * speed,
-                    vy: sin(angle) * speed,
-                    size: random(2, 5),
-                    targetIndex: i, // allPoints'teki index
-                    brightness: 255, // parlaklık kontrolü
-                    moveStartTime: 0, // hedefe gitmeye başlama zamanı
-                    movingToTarget: false
-                  });
-                }
-                realStarsCreatedTime = millis(); // RealStars oluşturulma zamanını kaydet
-              }
-
-              // centerStar patlama anında parlayan bir halo gibi büyüsün
-              currentSize = centerStar.size * 3;
-              fill(255, 200, 150, 180); // hafif turuncu-sarı glow
-              ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
-
-              // Patlama parçacıklarını hareket ettir
-              for (let i = 0; i < centerStar.particles.length; i++) {
-                let p = centerStar.particles[i];
-                p.vx *= 0.95;
-                p.vy *= 0.95;
-                p.vx += random(-0.1, 0.1);
-                p.vy += random(-0.1, 0.1);
-                p.x += p.vx;
-                p.y += p.vy;
-                p.alpha -= 4; // yavaş yavaş kaybolsun
-                fill(255, p.alpha);
-                ellipse(p.x, p.y, p.size);
-              }
-
-              centerStar.explosionDone = true;
-            }
-          }
-
-          // Patlama sonrası centerStar
-          fill(255, alpha);
-          ellipse(centerStar.x, centerStar.y, currentSize);
-        } else {
-          fill(255);
-          ellipse(centerStar.x, centerStar.y, centerStar.size * 2);
-        }
-      }
-
-      // Gerçek yıldızları çiz ve hareket ettir
-      if (centerStar && centerStar.explosionDone && realStarsCreatedTime > 0) {
-        const elapsedSinceRealStars = millis() - realStarsCreatedTime;
-        
-        // RealStars hareket mantığı
-        for (let i = 0; i < realStars.length; i++) {
-          let s = realStars[i];
-
-          if (elapsedSinceRealStars < 10000) {
-            // İlk 10 saniye: Serbest hareket
-            s.vx *= 0.98;
-            s.vy *= 0.98;
-            s.vx += random(-0.05, 0.05);
-            s.vy += random(-0.05, 0.05);
-          } else {
-            // 10 saniye sonra: Hedefe gitmeye başla
-            if (!s.movingToTarget) {
-              s.movingToTarget = true;
-              s.moveStartTime = millis();
-            }
-            
-            // ÖNEMLİ DEĞİŞİKLİK: Koordinat dönüştürme burada yapılıyor
-            // allPoints dizisindeki koordinatlar 0-1 arasında normalized olmalı
-            // Örnek: allPoints[0] = {x: 0.5, y: 0.3} gibi
-            const virtualCoords = getVirtualCoordinates(
-              allPoints[s.targetIndex].x, 
-              allPoints[s.targetIndex].y
-            );
-            const targetX = virtualCoords.x;
-            const targetY = virtualCoords.y;
-
-            const dx = targetX - s.x;
-            const dy = targetY - s.y;
-            const distance = sqrt(dx * dx + dy * dy);
-
-            if (distance > 50) { // Hedefe yakın değilse
-              // Zamanla hızlanma - başlangıçta çok yavaş, sonra hızlanır
-              let timeSinceStart = millis() - s.moveStartTime;
-              let accelerationFactor = map(timeSinceStart, 0, 8000, 0.005, 1.0); // 8 saniyede tam hıza çıkar
-              accelerationFactor = constrain(accelerationFactor, 0.005, 1.0);
-              
-              const baseSpeed = 0.05;
-              const speed = baseSpeed * accelerationFactor;
-              s.vx = (dx / distance) * speed * distance * 0.1;
-              s.vy = (dy / distance) * speed * distance * 0.1;
-            } else {
-              // Hedefe çok yakınsa dur
-              s.vx = 0;
-              s.vy = 0;
-              s.x = targetX;
-              s.y = targetY;
-            }
-          }
-
-          // Konumu güncelle
-          s.x += s.vx;
-          s.y += s.vy;
-
-          fill(255, s.brightness);
-          ellipse(s.x, s.y, s.size);
-        }
-      }; // draw fonksiyonunun sonu
-    } // startP5Animation fonksiyonunun sonu
+      };
+    }
 
     // Event listener'ları ekle
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -20671,7 +20614,7 @@
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
-    // Buton tıklama olayı
+    // Buton tıklama olayları
     document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
     document.getElementById('fullscreenBtn').addEventListener('touchstart', function(e) {
       e.preventDefault();
