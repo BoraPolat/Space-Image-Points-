@@ -48,15 +48,10 @@
       background-color: rgba(255, 255, 255, 0.4);
     }
     .responsive-container {
-      width: 100vw;
-      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Adds a fluid 16:10 aspect ratio to the container */
-      aspect-ratio: 16 / 10;
-      max-width: 100vw;
-      max-height: 100vh;
+      /* Remove aspect-ratio and rely on JS for sizing */
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
@@ -20097,6 +20092,7 @@
     // Virtual frame dimensions to maintain aspect ratio
     const VIRTUAL_WIDTH = 1600;
     const VIRTUAL_HEIGHT = 1000;
+    const ASPECT_RATIO = VIRTUAL_WIDTH / VIRTUAL_HEIGHT;
     
     // Function to create stars and target points
     function createStars(p) {
@@ -20141,11 +20137,36 @@
     let sketch = function(p) {
       let currentWidth, currentHeight;
 
+      // Function to resize canvas and container based on aspect ratio
+      function resizeCanvasAndContainer() {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const windowRatio = windowWidth / windowHeight;
+
+        let containerWidth, containerHeight;
+
+        if (windowRatio > ASPECT_RATIO) {
+          // Window is wider than 16:10, so fill height and adjust width
+          containerHeight = windowHeight;
+          containerWidth = windowHeight * ASPECT_RATIO;
+        } else {
+          // Window is taller or equal, so fill width and adjust height
+          containerWidth = windowWidth;
+          containerHeight = windowWidth / ASPECT_RATIO;
+        }
+
+        const container = document.getElementById('responsiveContainer');
+        container.style.width = containerWidth + 'px';
+        container.style.height = containerHeight + 'px';
+
+        currentWidth = containerWidth;
+        currentHeight = containerHeight;
+        p.resizeCanvas(currentWidth, currentHeight);
+      }
+
       p.setup = function() {
-        let container = document.getElementById('responsiveContainer');
-        currentWidth = container.offsetWidth;
-        currentHeight = container.offsetHeight;
-        p.createCanvas(currentWidth, currentHeight).parent(container);
+        p.createCanvas(1, 1).parent('responsiveContainer');
+        resizeCanvasAndContainer();
         createStars(p);
         p.noStroke();
 
@@ -20154,12 +20175,8 @@
         p.touchStarted = function() { isTouchActive = true; return false; }
         p.touchEnded = function() { isTouchActive = false; return false; }
         
-        // Resize canvas and re-create stars when window size changes
         p.windowResized = function() { 
-          let container = document.getElementById('responsiveContainer');
-          p.resizeCanvas(container.offsetWidth, container.offsetHeight); 
-          currentWidth = container.offsetWidth;
-          currentHeight = container.offsetHeight;
+          resizeCanvasAndContainer();
           createStars(p);
         }
       }
