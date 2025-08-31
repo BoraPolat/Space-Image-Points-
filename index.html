@@ -97,25 +97,27 @@
         // Tam ekrana geçildi, butonu gizle
         document.getElementById('fullscreenBtn').style.display = 'none';
         
-        // Şimdi p5.js'i yükle ve 3 saniye sonra başlat
+        // Şimdi p5.js'i yükle ve başlat
         loadP5AndStart();
       }
     }
 
     function loadP5AndStart() {
+      // Önce geri sayımı göster
+      showCountdown();
+      
       // p5.js'i dinamik olarak yükle
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js';
       script.onload = function() {
         p5Loaded = true;
+        console.log('p5.js yüklendi, 3 saniye bekleniyor...');
         
         // 3 saniye bekle, sonra p5.js kodunu çalıştır
         setTimeout(() => {
+          console.log('3 saniye bitti, animasyon başlıyor...');
           startP5Animation();
         }, 3000);
-        
-        // Geri sayım göster
-        showCountdown();
       };
       document.head.appendChild(script);
     }
@@ -123,6 +125,7 @@
     function showCountdown() {
       // Basit HTML ile geri sayım
       const countdownDiv = document.createElement('div');
+      countdownDiv.id = 'countdown';
       countdownDiv.style.cssText = `
         position: fixed;
         top: 50%;
@@ -136,13 +139,20 @@
       document.body.appendChild(countdownDiv);
       
       let countdown = 3;
+      
+      // İlk değeri hemen göster
+      countdownDiv.innerHTML = `<div style="font-size: 48px;">${countdown}</div><div style="font-size: 24px; margin-top: 20px;">Başlatılıyor...</div>`;
+      
       const interval = setInterval(() => {
+        countdown--;
         if (countdown > 0) {
           countdownDiv.innerHTML = `<div style="font-size: 48px;">${countdown}</div><div style="font-size: 24px; margin-top: 20px;">Başlatılıyor...</div>`;
-          countdown--;
         } else {
           clearInterval(interval);
-          document.body.removeChild(countdownDiv);
+          // Geri sayım bitti, div'i kaldır
+          if (document.getElementById('countdown')) {
+            document.body.removeChild(countdownDiv);
+          }
         }
       }, 1000);
     }
