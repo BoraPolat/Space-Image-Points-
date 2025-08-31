@@ -108,17 +108,7 @@
     let waveVisible = false;
     let realStarsCreatedTime = 0; // realStars oluşturulduğu zaman
 
-    let allPoints = []; // Boş dizi
-
-    // Yeni eklenen değişkenler
-    let isMouseActive = false;
-    let isTouchActive = false;
-    let p5Instance;
-    
-    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
-    function createStars(p) {
-      stars = [];
-      allPoints = [
+    let allPoints = [
     {
         "x": 0.2687,
         "y": 0.395
@@ -20119,7 +20109,17 @@
         "x": 0.5227,
         "y": 0.5713
     }
-];
+]; // Boş dizi
+
+    // Yeni eklenen değişkenler
+    let isMouseActive = false;
+    let isTouchActive = false;
+    let p5Instance;
+    
+    // Yıldızları ve hedef noktalarını oluşturan fonksiyon
+    function createStars(p) {
+      stars = [];
+      allPoints = [];
 
       // Yıldız renkleri (gerçek yıldız renklerine yakın)
       let starColors = [
@@ -20522,27 +20522,18 @@
     document.getElementById('fullscreen-button').addEventListener('click', () => {
       const buttonContainer = document.getElementById('fullscreen-button-container');
       const canvasContainer = document.getElementById('yaren-canvas');
-      const messageElement = document.getElementById('message');
-
+      
       // İlk olarak ekranı yatay moda kilitlemeye çalış
       let orientationPromise = Promise.resolve();
       if (screen.orientation && screen.orientation.lock) {
-        orientationPromise = screen.orientation.lock('landscape').catch(err => {
-          console.error("Ekran yönü kilitlenemedi: ", err);
-          if (messageElement) {
-            messageElement.textContent = "Lütfen cihazınızı yatay konuma getirin.";
-          } else {
-            const msg = document.createElement('div');
-            msg.id = 'message';
-            msg.className = 'message';
-            msg.textContent = "Lütfen cihazınızı yatay konuma getirin.";
-            buttonContainer.appendChild(msg);
-          }
-        });
+        orientationPromise = screen.orientation.lock('landscape')
+          .catch(err => {
+            console.error("Ekran yönü kilitlenemedi: ", err);
+          });
       }
 
+      // Yönlendirme isteği tamamlandıktan sonra tam ekran moduna geç
       orientationPromise.then(() => {
-        // Ardından tam ekran moduna geç
         let fullscreenPromise;
         if (document.documentElement.requestFullscreen) {
           fullscreenPromise = document.documentElement.requestFullscreen();
@@ -20554,14 +20545,13 @@
 
         if (fullscreenPromise) {
           fullscreenPromise.then(() => {
-            // Butonu gizle ve canvas'ı göster
             buttonContainer.style.display = 'none';
             canvasContainer.style.display = 'block';
-
+            
             // Yıldızları oluşturmadan önce 2 saniye bekle
             setTimeout(() => {
               p5Instance = new p5(initSketch, 'yaren-canvas');
-            }, 2000); // 2 saniye gecikme
+            }, 2000);
           }).catch((err) => {
             console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
             // Tam ekran başarısız olsa bile animasyonu başlat
