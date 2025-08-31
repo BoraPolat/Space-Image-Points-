@@ -20103,15 +20103,6 @@
     let isTouchActive = false;
     let p5Instance;
     
-    // Cihazın yan çevrilmesini sağlamak için eklenen kod
-    function lockScreenOrientation() {
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape-primary").catch(function(error) {
-          console.error("Ekran yönü kilitlenemedi: " + error);
-        });
-      }
-    }
-
     // Sketch'i başlatan ana fonksiyon
     function initSketch(p) {
       p.setup = function() {
@@ -20524,9 +20515,6 @@
       // Tam ekran başarılı olduğunda animasyonu başlat
       if (fullscreenPromise) {
         fullscreenPromise.then(() => {
-          // Ekran yönünü yatay olarak kilitle
-          lockScreenOrientation();
-          
           // Yıldızları oluşturmadan önce 2 saniye bekle
           setTimeout(() => {
             p5Instance = new p5(initSketch, 'yaren-canvas');
