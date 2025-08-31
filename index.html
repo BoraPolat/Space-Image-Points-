@@ -20459,16 +20459,38 @@
 
     // Get the fullscreen button and add a click event listener
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    fullscreenBtn.addEventListener('click', () => {
-      // Check for fullscreen support and request fullscreen for the body
+    
+    // Function to handle the fullscreen logic
+    const toggleFullscreen = () => {
+      const canvas = document.querySelector('canvas');
       if (!document.fullscreenElement) {
-        document.body.requestFullscreen().catch(err => {
-          console.error(`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`);
-        });
+        // Use browser-specific prefixes for better compatibility
+        if (canvas.requestFullscreen) {
+          canvas.requestFullscreen();
+        } else if (canvas.webkitRequestFullscreen) { /* Safari */
+          canvas.webkitRequestFullscreen();
+        } else if (canvas.msRequestFullscreen) { /* IE11 */
+          canvas.msRequestFullscreen();
+        }
       } else {
-        document.exitFullscreen();
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+          document.msExitFullscreen();
+        }
       }
-    });
+    };
+    
+    if (fullscreenBtn) {
+      // Add both click and touchstart event listeners for full mobile compatibility
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+      fullscreenBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent default touch behavior to ensure the fullscreen function is triggered
+        toggleFullscreen();
+      });
+    }
   </script>
 </body>
 </html>
