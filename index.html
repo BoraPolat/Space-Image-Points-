@@ -20454,7 +20454,7 @@
                 // centerStar patlama anında parlayan bir halo gibi büyüsün
                 currentSize = centerStar.size * 3;
                 p.fill(255, 200, 150, 180); // hafif turuncu-sarı glow
-                p.ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
+                p.ellipse(centerStar.x, center.y, currentSize * 1.2);
 
                 // Patlama parçacıklarını hareket ettir
                 for (let i = 0; i < centerStar.particles.length; i++) {
@@ -20543,19 +20543,26 @@
 
     // Tam ekran butonu için event listener
     document.getElementById('fullscreen-button').addEventListener('click', () => {
+      // Butonu gizle ve canvas'ı göster
       document.getElementById('fullscreen-button-container').style.display = 'none';
       document.getElementById('yaren-canvas').style.display = 'block';
 
+      // Tam ekran moduna geç
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
-      } else if (document.documentElement.webkitRequestFullscreen) { /* Safari ve diğer WebKit tabanlı tarayıcılar */
+      } else if (document.documentElement.webkitRequestFullscreen) {
         document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+      } else if (document.documentElement.msRequestFullscreen) {
         document.documentElement.msRequestFullscreen();
       }
 
+      // Ekran yönünü yatay olarak kilitle
       lockScreenOrientation();
-      p5Instance = new p5(initSketch, 'yaren-canvas');
+
+      // Animasyonu 2 saniye sonra başlat
+      setTimeout(() => {
+        p5Instance = new p5(initSketch, 'yaren-canvas');
+      }, 2000); // 2 saniye gecikme
     });
   </script>
 </body>
