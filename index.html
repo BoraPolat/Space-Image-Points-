@@ -20056,6 +20056,10 @@
     }
 ]; // Boş dizi
 
+    // Yeni eklenen değişkenler
+    let isMouseActive = false;
+    let isTouchActive = false;
+
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
       if (screen.orientation && screen.orientation.lock) {
@@ -20109,6 +20113,26 @@
 
       noStroke();
     }
+    
+    // Olay dinleyicileri
+    function mousePressed() {
+      isMouseActive = true;
+    }
+
+    function mouseReleased() {
+      isMouseActive = false;
+    }
+
+    function touchStarted() {
+      isTouchActive = true;
+      return false; // varsayılan davranışı engelle
+    }
+
+    function touchEnded() {
+      isTouchActive = false;
+      return false; // varsayılan davranışı engelle
+    }
+
 
     function draw() {
       // Arka plan normalde siyah, patlamadan sonra kademeli kararma
@@ -20121,7 +20145,7 @@
 
       let tx = mouseX;
       let ty = mouseY;
-      let isPressed = mouseIsPressed || touches.length > 0;
+      let isPressed = isMouseActive || isTouchActive; // Yeni değişkenlerle kontrol
 
       if (touches.length > 0) {
         tx = touches[0].x;
