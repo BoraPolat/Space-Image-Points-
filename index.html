@@ -20054,7 +20054,8 @@
         "x": 0.5227,
         "y": 0.5713
     }
-]; 
+]; // Boş dizi
+
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
       if (screen.orientation && screen.orientation.lock) {
@@ -20127,8 +20128,12 @@
         ty = touches[0].y;
       }
 
-      if (isPressed) holdTime += deltaTime / 1000;
-      else holdTime = 0;
+      // Sadece basılı tutuluyorsa holdTime artar, yoksa sıfırlanır
+      if (isPressed) {
+        holdTime += deltaTime / 1000;
+      } else {
+        holdTime = 0;
+      }
 
       // Normal yıldızlar
       for (let star of stars) {
@@ -20139,6 +20144,24 @@
           continue;
         }
 
+        // Yalnızca basılı tutuluyorsa interaksiyon başlar
+        if (isPressed) {
+          let d = dist(tx, ty, star.x, star.y);
+          if (d < 250 && !spinning) {
+            let angle = atan2(ty - star.y, tx - star.x);
+            let pull = 0.5;
+            star.inertiaX = cos(angle) * pull;
+            star.inertiaY = sin(angle) * pull;
+            star.inertiaCounter = 30;
+          } else {
+            if (star.inertiaCounter > 0) star.inertiaCounter--;
+            else {
+              star.inertiaX *= 0.95;
+              star.inertiaY *= 0.95;
+            }
+          }
+        }
+
         star.x += star.baseSpeedX + star.inertiaX;
         star.y += star.baseSpeedY + star.inertiaY;
 
@@ -20146,22 +20169,7 @@
         if (star.x > width) star.x = 0;
         if (star.y < 0) star.y = height;
         if (star.y > height) star.y = 0;
-
-        let d = dist(tx, ty, star.x, star.y);
-        if (d < 250 && !spinning) {
-          let angle = atan2(ty - star.y, tx - star.x);
-          let pull = 0.5;
-          star.inertiaX = cos(angle) * pull;
-          star.inertiaY = sin(angle) * pull;
-          star.inertiaCounter = 30;
-        } else {
-          if (star.inertiaCounter > 0) star.inertiaCounter--;
-          else {
-            star.inertiaX *= 0.95;
-            star.inertiaY *= 0.95;
-          }
-        }
-
+        
         if (spinning && spinningStars.length > 0) {
           let closest = null;
           let minDist = 9999;
