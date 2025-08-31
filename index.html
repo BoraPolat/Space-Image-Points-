@@ -24,7 +24,6 @@
     }
     canvas {
       display: block;
-      /* The canvas will be constrained by its parent container */
       max-width: 100%;
       max-height: 100%;
     }
@@ -54,9 +53,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Add these properties to fix the aspect ratio */
+      /* Adds a fluid 16:10 aspect ratio to the container */
       aspect-ratio: 16 / 10;
-      /* Ensure the container scales to fit the screen */
       max-width: 100vw;
       max-height: 100vh;
     }
@@ -20096,6 +20094,10 @@
     let isMouseActive = false;
     let isTouchActive = false;
     
+    // Virtual frame dimensions to maintain aspect ratio
+    const VIRTUAL_WIDTH = 1600;
+    const VIRTUAL_HEIGHT = 1000;
+    
     // Function to create stars and target points
     function createStars(p) {
       stars = [];
@@ -20112,8 +20114,9 @@
 
       for (let i = 0; i < 400; i++) {
         stars.push({
-          x: p.random(p.width),
-          y: p.random(p.height),
+          // Initial positions are generated in the virtual frame, not screen pixels
+          x: p.random(VIRTUAL_WIDTH),
+          y: p.random(VIRTUAL_HEIGHT),
           size: p.random(1, 3),
           alpha: p.random(100, 255),
           baseSpeedX: p.random(-0.2, 0.2),
@@ -20125,20 +20128,24 @@
         });
       }
 
+      // Target points are also generated in the virtual frame
       for (let i = 0; i < 5000; i++) {
         allPoints.push({
-          x: p.random(1),
-          y: p.random(1)
+          x: p.random(VIRTUAL_WIDTH),
+          y: p.random(VIRTUAL_HEIGHT)
         });
       }
     }
 
     // Main function to initialize the sketch
     let sketch = function(p) {
+      let currentWidth, currentHeight;
+
       p.setup = function() {
-        // Create canvas inside the responsive container
         let container = document.getElementById('responsiveContainer');
-        p.createCanvas(container.offsetWidth, container.offsetHeight).parent(container);
+        currentWidth = container.offsetWidth;
+        currentHeight = container.offsetHeight;
+        p.createCanvas(currentWidth, currentHeight).parent(container);
         createStars(p);
         p.noStroke();
 
@@ -20151,6 +20158,8 @@
         p.windowResized = function() { 
           let container = document.getElementById('responsiveContainer');
           p.resizeCanvas(container.offsetWidth, container.offsetHeight); 
+          currentWidth = container.offsetWidth;
+          currentHeight = container.offsetHeight;
           createStars(p);
         }
       }
@@ -20178,18 +20187,26 @@
         } else {
           holdTime = 0;
         }
+        
+        // Calculate scaling factors
+        const scaleX = currentWidth / VIRTUAL_WIDTH;
+        const scaleY = currentHeight / VIRTUAL_HEIGHT;
+
+        // Apply scale to mouse/touch coordinates
+        const scaledTx = tx / scaleX;
+        const scaledTy = ty / scaleY;
 
         for (let star of stars) {
           if (star === centerStar) {
             p.fill(255);
-            p.ellipse(star.x, star.y, star.size * 2);
+            p.ellipse(star.x * scaleX, star.y * scaleY, star.size * 2);
             continue;
           }
 
           if (isPressed) {
-            let d = p.dist(tx, ty, star.x, star.y);
+            let d = p.dist(scaledTx, scaledTy, star.x, star.y);
             if (d < 250 && !spinning) {
-              let angle = p.atan2(ty - star.y, tx - star.x);
+              let angle = p.atan2(scaledTy - star.y, scaledTx - star.x);
               let pull = 0.5;
               star.inertiaX = p.cos(angle) * pull;
               star.inertiaY = p.sin(angle) * pull;
@@ -20206,10 +20223,11 @@
           star.x += star.baseSpeedX + star.inertiaX;
           star.y += star.baseSpeedY + star.inertiaY;
 
-          if (star.x < 0) star.x = p.width;
-          if (star.x > p.width) star.x = 0;
-          if (star.y < 0) star.y = p.height;
-          if (star.y > p.height) star.y = 0;
+          // Wrap stars around the virtual frame
+          if (star.x < 0) star.x = VIRTUAL_WIDTH;
+          if (star.x > VIRTUAL_WIDTH) star.x = 0;
+          if (star.y < 0) star.y = VIRTUAL_HEIGHT;
+          if (star.y > VIRTUAL_HEIGHT) star.y = 0;
           
           if (spinning && spinningStars.length > 0) {
             let closest = null;
@@ -20238,7 +20256,7 @@
           }
 
           p.fill(p.red(star.color), p.green(star.color), p.blue(star.color), star.alpha);
-          p.ellipse(star.x, star.y, star.size);
+          p.ellipse(star.x * scaleX, star.y * scaleY, star.size);
         }
 
         if (holdTime >= 5 && !spinning) {
@@ -20266,8 +20284,8 @@
               maxMultiplier: 2.0,
               offsetX: p.random(-20, 20),
               offsetY: p.random(-20, 20),
-              targetX: p.width / 2,
-              targetY: p.height / 2,
+              targetX: VIRTUAL_WIDTH / 2,
+              targetY: VIRTUAL_HEIGHT / 2,
               vx: 0,
               vy: 0
             });
@@ -20287,7 +20305,7 @@
             let cy = s.y + p.sin(s.angle) * s.radius + s.offsetY;
 
             p.fill(p.red(s.color), p.green(s.color), p.blue(s.color), s.alpha);
-            p.ellipse(cx, cy, s.size);
+            p.ellipse(cx * scaleX, cy * scaleY, s.size);
 
             if (s.speedMultiplier >= s.maxMultiplier && !explosionTriggered) {
               explosionTriggered = true;
@@ -20324,14 +20342,14 @@
               stars.splice(stars.indexOf(st), 1);
             } else {
               p.fill(p.red(st.color), p.green(st.color), p.blue(st.color), st.fadeAlpha);
-              p.ellipse(st.x, st.y, st.size);
+              p.ellipse(st.x * scaleX, st.y * scaleY, st.size);
             }
           }
         }
 
         if (centerStar) {
-          centerStar.x += (p.width / 2 - centerStar.x) * 0.0015;
-          centerStar.y += (p.height / 2 - centerStar.y) * 0.0015;
+          centerStar.x += (VIRTUAL_WIDTH / 2 - centerStar.x) * 0.0015;
+          centerStar.y += (VIRTUAL_HEIGHT / 2 - centerStar.y) * 0.0015;
 
           if (!centerStar.particles) centerStar.particles = [];
           if (!centerStar.explosionDone) centerStar.explosionDone = false;
@@ -20399,7 +20417,7 @@
 
                 currentSize = centerStar.size * 3;
                 p.fill(255, 200, 150, 180);
-                p.ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
+                p.ellipse(centerStar.x * scaleX, centerStar.y * scaleY, currentSize * 1.2);
 
                 for (let i = 0; i < centerStar.particles.length; i++) {
                   let p_particle = centerStar.particles[i];
@@ -20411,7 +20429,7 @@
                   p_particle.y += p_particle.vy;
                   p_particle.alpha -= 4;
                   p.fill(255, p_particle.alpha);
-                  p.ellipse(p_particle.x, p_particle.y, p_particle.size);
+                  p.ellipse(p_particle.x * scaleX, p_particle.y * scaleY, p_particle.size);
                 }
 
                 centerStar.explosionDone = true;
@@ -20419,10 +20437,10 @@
             }
 
             p.fill(255, alpha);
-            p.ellipse(centerStar.x, centerStar.y, currentSize);
+            p.ellipse(centerStar.x * scaleX, centerStar.y * scaleY, currentSize);
           } else {
             p.fill(255);
-            p.ellipse(centerStar.x, centerStar.y, centerStar.size * 2);
+            p.ellipse(centerStar.x * scaleX, centerStar.y * scaleY, centerStar.size * 2);
           }
         }
 
@@ -20443,8 +20461,8 @@
                 s.moveStartTime = p.millis();
               }
               
-              const targetX = allPoints[s.targetIndex].x * p.width;
-              const targetY = allPoints[s.targetIndex].y * p.height;
+              const targetX = allPoints[s.targetIndex].x;
+              const targetY = allPoints[s.targetIndex].y;
 
               const dx = targetX - s.x;
               const dy = targetY - s.y;
@@ -20471,7 +20489,7 @@
             s.y += s.vy;
 
             p.fill(255, s.brightness);
-            p.ellipse(s.x, s.y, s.size);
+            p.ellipse(s.x * scaleX, s.y * scaleY, s.size);
           }
         }
       }
