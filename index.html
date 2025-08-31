@@ -20209,7 +20209,7 @@
 
         let tx = p.mouseX;
         let ty = p.mouseY;
-        let isPressed = isMouseActive || isTouchActive; // Yeni değişkenlerle kontrol
+        let isPressed = isMouseActive || p.touches.length > 0; // Yeni değişkenlerle kontrol
 
         if (p.touches.length > 0) {
           tx = p.touches[0].x;
@@ -20548,22 +20548,35 @@
       document.getElementById('fullscreen-button-container').style.display = 'none';
       document.getElementById('yaren-canvas').style.display = 'block';
 
-      // Tam ekran moduna geç
+      // Tam ekran moduna geçişi bir Promise ile takip et
+      let fullscreenPromise;
       if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
+        fullscreenPromise = document.documentElement.requestFullscreen();
       } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
+        fullscreenPromise = document.documentElement.webkitRequestFullscreen();
       } else if (document.documentElement.msRequestFullscreen) {
-        document.documentElement.msRequestFullscreen();
+        fullscreenPromise = document.documentElement.msRequestFullscreen();
       }
 
-      // Ekran yönünü yatay olarak kilitle
-      lockScreenOrientation();
-      
-      // Yıldızları oluşturmadan önce 2 saniye bekle
-      setTimeout(() => {
+      // Tam ekran başarılı olduğunda animasyonu başlat
+      if (fullscreenPromise) {
+        fullscreenPromise.then(() => {
+          // Ekran yönünü yatay olarak kilitle
+          lockScreenOrientation();
+          
+          // Yıldızları oluşturmadan önce 2 saniye bekle
+          setTimeout(() => {
+            p5Instance = new p5(initSketch, 'yaren-canvas');
+          }, 2000); // 2 saniye gecikme
+        }).catch((err) => {
+          console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
+          // Tam ekran başarısız olsa bile animasyonu başlat
+          p5Instance = new p5(initSketch, 'yaren-canvas');
+        });
+      } else {
+        // Tarayıcı tam ekranı desteklemiyorsa bile animasyonu başlat
         p5Instance = new p5(initSketch, 'yaren-canvas');
-      }, 2000); // 2 saniye gecikme
+      }
     });
   </script>
 </body>
