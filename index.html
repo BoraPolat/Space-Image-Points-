@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Yaren Animasyonu</title>
   <style>
     html, body {
@@ -10,77 +10,22 @@
       height: 100%;
       overflow: hidden;
       margin: 0;
+      background-color: #000;
     }
     body {
-      touch-action: manipulation;
+      touch-action: none;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       -webkit-text-size-adjust: none;
       -webkit-tap-highlight-color: rgba(0,0,0,0);
-      background-color: #000;
-      color: #fff;
-      font-family: sans-serif;
     }
-    
-    #yaren-canvas {
-      display: none;
-      touch-action: none;
-      user-select: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    #fullscreen-button-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-color: #000;
-      z-index: 100;
-    }
-
-    #fullscreen-button {
-      background-color: #fff;
-      color: #000;
-      border: none;
-      padding: 15px 30px;
-      font-size: 1.2em;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.3s;
-    }
-
-    #fullscreen-button:hover {
-      background-color: #ddd;
-      transform: scale(1.05);
-    }
-    
-    .message {
-      margin-top: 20px;
-      font-size: 1em;
-      text-align: center;
-      padding: 10px;
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 5px;
+    canvas {
+      display: block;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
 </head>
 <body>
-  <div id="fullscreen-button-container">
-    <button id="fullscreen-button">Tam Ekran</button>
-  </div>
-
-  <div id="yaren-canvas"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     let stars = [];
     let spinningStars = [];
@@ -20110,8 +20055,7 @@
 
     let isMouseActive = false;
     let isTouchActive = false;
-    let p5Instance;
-
+    
     // Function to create stars and target points
     function createStars(p) {
       stars = [];
@@ -20150,7 +20094,7 @@
     }
 
     // Main function to initialize the sketch
-    function initSketch(p) {
+    let sketch = function(p) {
       p.setup = function() {
         p.createCanvas(p.windowWidth, p.windowHeight);
         createStars(p);
@@ -20488,51 +20432,9 @@
           }
         }
       }
-    }
-
-    document.getElementById('fullscreen-button').addEventListener('click', () => {
-      const buttonContainer = document.getElementById('fullscreen-button-container');
-      const canvasContainer = document.getElementById('yaren-canvas');
-      
-      let fullscreenPromise;
-      if (document.documentElement.requestFullscreen) {
-        fullscreenPromise = document.documentElement.requestFullscreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        fullscreenPromise = document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.msRequestFullscreen) {
-        fullscreenPromise = document.documentElement.msRequestFullscreen();
-      }
-
-      if (fullscreenPromise) {
-        fullscreenPromise.then(() => {
-          buttonContainer.style.display = 'none';
-          canvasContainer.style.display = 'block';
-          
-          // Gecikme süresini 1 saniyeye yükselttik
-          setTimeout(() => {
-            if (p5Instance) {
-              p5Instance.remove();
-            }
-            p5Instance = new p5(initSketch, 'yaren-canvas');
-          }, 1000); // 1000ms = 1 saniye
-        }).catch((err) => {
-          console.error("Tam ekran moduna geçiş başarısız oldu: " + err);
-          buttonContainer.style.display = 'none';
-          canvasContainer.style.display = 'block';
-          if (p5Instance) {
-              p5Instance.remove();
-            }
-          p5Instance = new p5(initSketch, 'yaren-canvas');
-        });
-      } else {
-        buttonContainer.style.display = 'none';
-        canvasContainer.style.display = 'block';
-        if (p5Instance) {
-              p5Instance.remove();
-            }
-        p5Instance = new p5(initSketch, 'yaren-canvas');
-      }
-    });
+    };
+    
+    new p5(sketch);
   </script>
 </body>
 </html>
