@@ -22,10 +22,31 @@
     canvas {
       display: block;
     }
+    #fullscreenBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 10px 15px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      transition: background-color 0.3s ease;
+    }
+    #fullscreenBtn:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
 </head>
 <body>
+  <button id="fullscreenBtn">Tam Ekran</button>
   <script>
     let stars = [];
     let spinningStars = [];
@@ -20435,6 +20456,19 @@
     };
     
     new p5(sketch);
+
+    // Get the fullscreen button and add a click event listener
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
+      // Check for fullscreen support and request fullscreen for the body
+      if (!document.fullscreenElement) {
+        document.body.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
   </script>
 </body>
 </html>
