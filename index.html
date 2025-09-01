@@ -143,17 +143,7 @@
       document.head.appendChild(script);
     }
 
-    function startP5Animation() {
-      // Tüm p5.js animasyon kodu burada başlar
-      let stars = [];
-      let spinningStars = [];
-      let holdTime = 0;
-      let spinning = false;
-      let explosionTriggered = false;
-      let explosionStartTime = 0;
-      const transitionTime = 2000;
-
-      let realStars = [];
+Stars = [];
       let fadeStars = [];
       let fadeTimer = 0;
       let centerStar = null;
@@ -20196,22 +20186,22 @@
       window.addEventListener('touchend', preventDefault, { passive: false });
       window.addEventListener('touchmove', preventDefault, { passive: false });
 
-      function calculateVirtualDimensions() {
-        virtualHeight = width * (10 / 16);
+      window.calculateVirtualDimensions = function() {
+        window.virtualHeight = width * (10 / 16);
         
-        if (virtualHeight <= height) {
-          offsetY = (height - virtualHeight) / 2;
+        if (window.virtualHeight <= height) {
+          window.offsetY = (height - window.virtualHeight) / 2;
         } else {
           let virtualWidth = height * (16 / 10);
-          virtualHeight = height;
-          offsetY = 0;
+          window.virtualHeight = height;
+          window.offsetY = 0;
         }
       }
 
-      function getVirtualCoordinates(normalizedX, normalizedY) {
+      window.getVirtualCoordinates = function(normalizedX, normalizedY) {
         return {
           x: normalizedX * width,
-          y: normalizedY * virtualHeight + offsetY
+          y: normalizedY * window.virtualHeight + window.offsetY
         };
       }
 
@@ -20219,11 +20209,11 @@
         createCanvas(windowWidth, windowHeight);
         lockScreenOrientation();
         
-        calculateVirtualDimensions();
+        window.calculateVirtualDimensions();
         
         window.addEventListener('resize', () => {
           resizeCanvas(windowWidth, windowHeight);
-          calculateVirtualDimensions();
+          window.calculateVirtualDimensions();
         });
 
         let starColors = [
@@ -20236,7 +20226,7 @@
         ];
 
         for (let i = 0; i < 400; i++) {
-          stars.push({
+          window.stars.push({
             x: random(width),
             y: random(height),
             size: random(1, 3),
@@ -20254,20 +20244,20 @@
       };
       
       window.mousePressed = function() {
-        isMouseActive = true;
+        window.isMouseActive = true;
       };
 
       window.mouseReleased = function() {
-        isMouseActive = false;
+        window.isMouseActive = false;
       };
 
       window.touchStarted = function() {
-        isTouchActive = true;
+        window.isTouchActive = true;
         return false;
       };
 
       window.touchEnded = function() {
-        isTouchActive = false;
+        window.isTouchActive = false;
         return false;
       };
 
@@ -20464,11 +20454,11 @@
           if (!centerStar.explosionDone) centerStar.explosionDone = false;
           if (!centerStar.waitStart) centerStar.waitStart = false;
 
-          if (explosionTriggered && fadeStars.length === 0) {
-            if (!centerStar.startTime) centerStar.startTime = millis();
+          if (window.explosionTriggered && window.fadeStars.length === 0) {
+            if (!window.centerStar.startTime) window.centerStar.startTime = millis();
 
-            let elapsed = (millis() - centerStar.startTime) / 1000;
-            let baseSize = centerStar.size * 1.5;
+            let elapsed = (millis() - window.centerStar.startTime) / 1000;
+            let baseSize = window.centerStar.size * 1.5;
             let currentSize = baseSize;
             let alpha = 255;
 
@@ -20486,20 +20476,20 @@
                 alpha = lerp(255, 128, sin(phase * PI));
               } else {
                 alpha = 255;
-                if (!centerStar.waitStart) centerStar.waitStart = millis();
+                if (!window.centerStar.waitStart) window.centerStar.waitStart = millis();
               }
-            } else if (!centerStar.explosionDone) {
-              let waitElapsed = (millis() - centerStar.waitStart) / 1000;
-              if (!centerStar.waitStart) centerStar.waitStart = millis();
+            } else if (!window.centerStar.explosionDone) {
+              let waitElapsed = (millis() - window.centerStar.waitStart) / 1000;
+              if (!window.centerStar.waitStart) window.centerStar.waitStart = millis();
 
               if (waitElapsed >= 2) {
-                if (centerStar.particles.length === 0) {
+                if (window.centerStar.particles.length === 0) {
                   for (let i = 0; i < 400; i++) {
                     let angle = random(TWO_PI);
                     let speed = random(3, 16);
-                    centerStar.particles.push({
-                      x: centerStar.x,
-                      y: centerStar.y,
+                    window.centerStar.particles.push({
+                      x: window.centerStar.x,
+                      y: window.centerStar.y,
                       vx: cos(angle) * speed,
                       vy: sin(angle) * speed,
                       size: random(2, 5),
@@ -20509,9 +20499,9 @@
                   for (let i = 0; i < 5000; i++) {
                     let angle = random(TWO_PI);
                     let speed = random(3, 16);
-                    realStars.push({
-                      x: centerStar.x,
-                      y: centerStar.y,
+                    window.realStars.push({
+                      x: window.centerStar.x,
+                      y: window.centerStar.y,
                       vx: cos(angle) * speed,
                       vy: sin(angle) * speed,
                       size: random(2, 5),
@@ -20521,15 +20511,15 @@
                       movingToTarget: false
                     });
                   }
-                  realStarsCreatedTime = millis();
+                  window.realStarsCreatedTime = millis();
                 }
 
-                currentSize = centerStar.size * 3;
+                currentSize = window.centerStar.size * 3;
                 fill(255, 200, 150, 180);
-                ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
+                ellipse(window.centerStar.x, window.centerStar.y, currentSize * 1.2);
 
-                for (let i = 0; i < centerStar.particles.length; i++) {
-                  let p = centerStar.particles[i];
+                for (let i = 0; i < window.centerStar.particles.length; i++) {
+                  let p = window.centerStar.particles[i];
                   p.vx *= 0.95;
                   p.vy *= 0.95;
                   p.vx += random(-0.1, 0.1);
@@ -20541,23 +20531,23 @@
                   ellipse(p.x, p.y, p.size);
                 }
 
-                centerStar.explosionDone = true;
+                window.centerStar.explosionDone = true;
               }
             }
 
             fill(255, alpha);
-            ellipse(centerStar.x, centerStar.y, currentSize);
+            ellipse(window.centerStar.x, window.centerStar.y, currentSize);
           } else {
             fill(255);
-            ellipse(centerStar.x, centerStar.y, centerStar.size * 2);
+            ellipse(window.centerStar.x, window.centerStar.y, window.centerStar.size * 2);
           }
         }
 
-        if (centerStar && centerStar.explosionDone && realStarsCreatedTime > 0) {
-          const elapsedSinceRealStars = millis() - realStarsCreatedTime;
+        if (window.centerStar && window.centerStar.explosionDone && window.realStarsCreatedTime > 0) {
+          const elapsedSinceRealStars = millis() - window.realStarsCreatedTime;
           
-          for (let i = 0; i < realStars.length; i++) {
-            let s = realStars[i];
+          for (let i = 0; i < window.realStars.length; i++) {
+            let s = window.realStars[i];
 
             if (elapsedSinceRealStars < 10000) {
               s.vx *= 0.98;
@@ -20570,31 +20560,34 @@
                 s.moveStartTime = millis();
               }
               
-              const virtualCoords = getVirtualCoordinates(
-                allPoints[s.targetIndex].x, 
-                allPoints[s.targetIndex].y
-              );
-              const targetX = virtualCoords.x;
-              const targetY = virtualCoords.y;
+              // allPoints kontrolü ekle
+              if (window.allPoints && window.allPoints[s.targetIndex]) {
+                const virtualCoords = window.getVirtualCoordinates(
+                  window.allPoints[s.targetIndex].x, 
+                  window.allPoints[s.targetIndex].y
+                );
+                const targetX = virtualCoords.x;
+                const targetY = virtualCoords.y;
 
-              const dx = targetX - s.x;
-              const dy = targetY - s.y;
-              const distance = sqrt(dx * dx + dy * dy);
+                const dx = targetX - s.x;
+                const dy = targetY - s.y;
+                const distance = sqrt(dx * dx + dy * dy);
 
-              if (distance > 50) {
-                let timeSinceStart = millis() - s.moveStartTime;
-                let accelerationFactor = map(timeSinceStart, 0, 8000, 0.005, 1.0);
-                accelerationFactor = constrain(accelerationFactor, 0.005, 1.0);
-                
-                const baseSpeed = 0.05;
-                const speed = baseSpeed * accelerationFactor;
-                s.vx = (dx / distance) * speed * distance * 0.1;
-                s.vy = (dy / distance) * speed * distance * 0.1;
-              } else {
-                s.vx = 0;
-                s.vy = 0;
-                s.x = targetX;
-                s.y = targetY;
+                if (distance > 50) {
+                  let timeSinceStart = millis() - s.moveStartTime;
+                  let accelerationFactor = map(timeSinceStart, 0, 8000, 0.005, 1.0);
+                  accelerationFactor = constrain(accelerationFactor, 0.005, 1.0);
+                  
+                  const baseSpeed = 0.05;
+                  const speed = baseSpeed * accelerationFactor;
+                  s.vx = (dx / distance) * speed * distance * 0.1;
+                  s.vy = (dy / distance) * speed * distance * 0.1;
+                } else {
+                  s.vx = 0;
+                  s.vy = 0;
+                  s.x = targetX;
+                  s.y = targetY;
+                }
               }
             }
 
@@ -20606,6 +20599,10 @@
           }
         }
       };
+
+      // Şimdi setup'ı çağır
+      console.log('p5.js animasyon başlatılıyor...');
+    }
     }
 
     // Event listener'ları ekle
