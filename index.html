@@ -56,18 +56,6 @@
     let explosionTriggered = false;
     let explosionStartTime = 0;
     const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
-
-    // Müzik için değişken
-    let music;
-
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
-
     let allPoints = [
     {
         "x": 0.2687,
@@ -20070,6 +20058,17 @@
         "y": 0.5713
     }
 ]
+    // Müzik için değişken
+    let music;
+
+    let realStars = [];
+    let fadeStars = [];
+    let fadeTimer = 0;
+    let centerStar = null;
+    let bgFade = 0; // arkaplan kararma için
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20626,6 +20625,7 @@
         musicStarted = false;
       }
     }
+
   </script>
 </body>
 </html>
