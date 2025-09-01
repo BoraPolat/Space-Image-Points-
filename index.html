@@ -1,27 +1,4 @@
-// Kullanıcı tarafından sağlanan JavaScript kodu
-    let stars = [];
-    let spinningStars = [];
-    let holdTime = 0;
-    let spinning = false;
-    let explosionTriggered = false;
-    let explosionStartTime = 0;
-    const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
-
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
-
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
-
-    // Yeni değişkenler
-    let secondExplosionTriggered = false;
-    let thirdExplosionTriggered = false;
-    let secondExplosionStartTime = 0;
-    let thirdExplosionStartTime = 0;
-    let affectedStars = []; // ikinci patlamadan etkilenen yıldız<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
@@ -65,10 +42,6 @@
 
     let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
     let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
-
-    // Ses değişkeni
-    let backgroundMusic;
-    let musicStarted = false;
     let allPoints = [
     {
         "x": 0.2687,
@@ -20071,6 +20044,11 @@
         "y": 0.5713
     }
 ]
+      
+    // Ses değişkenleri
+    let backgroundMusic;
+    let musicStarted = false;
+
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20115,8 +20093,8 @@
       // 16:10 oranı için sanal boyutları hesapla
       calculateVirtualDimensions();
       
-      // Müziği yükle (dosya yolu değiştirmeyi unutma)
-      backgroundMusic = new Audio('song.mp3'); // Buraya şarkı dosyasının yolunu koy
+      // Müziği yükle
+      backgroundMusic = new Audio('music.mp3'); // Dosya adını değiştir
       backgroundMusic.loop = true;
       backgroundMusic.volume = 0.5; // Ses seviyesi (0.0 - 1.0 arası)
       
@@ -20316,7 +20294,7 @@
       if (holdTime >= 5 && !spinning) {
         spinning = true;
         
-        // Müziği başlat (ilk kez)
+        // Müziği başlat (spinning animasyonu başlarken)
         if (!musicStarted) {
           backgroundMusic.play().catch(err => console.log('Müzik başlatılamadı:', err));
           musicStarted = true;
