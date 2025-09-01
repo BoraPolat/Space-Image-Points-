@@ -1,4 +1,38 @@
-// Kullanıcı tarafından sağlanan JavaScript kodu
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Yarosum</title>
+  <style>
+    body {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -webkit-text-size-adjust: none;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      overflow: hidden;
+      margin: 0;
+      background-color: #000;
+    }
+    canvas {
+      display: block;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+    <audio id="backgroundMusic" preload="auto" loop>
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script>
+    // Müzik kontrol değişkeni
+    let audioStarted = false;
+    
+    // Kullanıcı tarafından sağlanan JavaScript kodu
     let stars = [];
     let spinningStars = [];
     let holdTime = 0;
@@ -12,22 +46,8 @@
     let fadeTimer = 0;
     let centerStar = null;
     let bgFade = 0; // arkaplan kararma için
-let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
     let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
-
-    // Yeni değişkenler
-    let secondExplosionTriggered = false;
-    let thirdExplosionTriggered = false;
-    let secondExplosionStartTime = 0;
-    let thirdExplosionStartTime = 0;
-    let affectedStars = []; // ikinci patlamadan etkilenen yıldızlar
-    let waveRadius = 0; // güç dalgası yarıçapı
-    let waveVisible = false;
-    let realStarsCreatedTime = 0; // realStars oluşturulduğu zaman
-    // Yeni eklenen değişkenler
-    let isMouseActive = false;
-    let isTouchActive = false;
-    let audioStarted = false; // Müzik kontrol değişkeni
     let allPoints = [
     {
         "x": 0.2687,
@@ -20029,7 +20049,20 @@ let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
         "x": 0.5227,
         "y": 0.5713
     }
-]
+];
+    // Yeni değişkenler
+    let secondExplosionTriggered = false;
+    let thirdExplosionTriggered = false;
+    let secondExplosionStartTime = 0;
+    let thirdExplosionStartTime = 0;
+    let affectedStars = []; // ikinci patlamadan etkilenen yıldızlar
+    let waveRadius = 0; // güç dalgası yarıçapı
+    let waveVisible = false;
+    let realStarsCreatedTime = 0; // realStars oluşturulduğu zaman
+    // Yeni eklenen değişkenler
+    let isMouseActive = false;
+    let isTouchActive = false;
+
     // Ekran oranı düzeltmesi için değişkenler
     let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
     let virtualWidth;  // 16:10 oranında hesaplanacak sanal genişlik
@@ -20042,15 +20075,19 @@ let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
         const audio = document.getElementById('backgroundMusic');
         audio.volume = 0.7; // Ses seviyesi %70
         
-        // Oynatma sözü (promise) kullanarak hatayı yakala
+        // Safari için özel çözüm
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.then(() => {
             audioStarted = true;
             console.log('Müzik başlatıldı');
           }).catch(error => {
-            // Otomatik oynatma engellendiğinde hata verir
-            console.log('Müzik otomatik olarak başlatılamadı:', error);
+            // Safari'de hata durumunda tekrar dene
+            setTimeout(() => {
+              audio.play().then(() => {
+                audioStarted = true;
+              }).catch(e => console.log('Müzik başlatılamadı:', e));
+            }, 100);
           });
         }
       }
@@ -20281,9 +20318,6 @@ let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
         starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
         centerStar = starsToSpin[0]; // özel yıldız
         centerStar.size = 2; // orta boyut olarak sabitlendi
-        
-        // MÜZİK BAŞLAT - Spinning başladığında
-        // startBackgroundMusic(); // ***BU SATIR KALDIRILDI***
       }
 
       // Sıradaki yıldızları 0.05 saniyede bir spinningStars dizisine ekle
@@ -20537,3 +20571,6 @@ let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
         }
       }
     }
+  </script>
+</body>
+</html>
