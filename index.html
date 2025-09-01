@@ -20327,9 +20327,9 @@
         }
       }
 
-      // Fade efekti (sıra sıra, 12 saniyede tüm yıldızlar)
+      // Fade efekti (sıra sıra,  4 saniyede tüm yıldızlar)
       if (fadeStars.length > 0 && explosionTriggered) {
-        let totalTime = 4; // saniye cinsinden toplam süre
+        let totalTime = 2; // saniye cinsinden toplam süre
         let starsPerFrame = fadeStars.length / (totalTime * 60); // 60 fps varsayımıyla
 
         for (let i = fadeStars.length - 1; i >= 0; i--) {
@@ -20369,14 +20369,14 @@
 
           if (elapsed < 3) {
             currentSize = baseSize;
-          } else if (elapsed >= 3 && elapsed < 5) {
+          } else if (elapsed >= 3 && elapsed <3) {
             let t = (elapsed - 3) / 2.0;
             currentSize = lerp(baseSize, baseSize * 3, t);
           } else if (elapsed >= 5 && elapsed < 15) {
             currentSize = baseSize * 3;
-            let t = (elapsed - 5);
+            let t = (elapsed - 3);
             let cycle = floor(t / 2);
-            if (cycle < 5) {
+            if (cycle < 3) {
               let phase = (t % 2) / 2;
               alpha = lerp(255, 128, sin(phase * PI));
             } else {
