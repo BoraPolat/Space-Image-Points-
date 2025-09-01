@@ -20,13 +20,97 @@
       touch-action: none;
       user-select: none;
     }
+    
+    /* Müzik kontrol butonu */
+    #musicControl {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.3s;
+    }
+    
+    #musicControl:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    #musicControl:active {
+      background: rgba(255, 255, 255, 0.4);
+    }
   
   </style>
 </head>
 <body>
 
+  <!-- Müzik kontrol butonu -->
+  <div id="musicControl" onclick="toggleMusic()">▶</div>
+  
+  <!-- Ses dosyası -->
+  <audio id="backgroundMusic" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
+    // Müzik kontrol değişkenleri
+    let musicPlaying = false;
+    let audioElement = null;
+    let musicButton = null;
+    let userInteracted = false;
+
+    // Müzik kontrol fonksiyonu
+    function toggleMusic() {
+      if (!audioElement) {
+        audioElement = document.getElementById('backgroundMusic');
+        musicButton = document.getElementById('musicControl');
+      }
+      
+      userInteracted = true;
+      
+      if (musicPlaying) {
+        audioElement.pause();
+        musicButton.innerHTML = '▶';
+        musicPlaying = false;
+      } else {
+        audioElement.play().then(() => {
+          musicButton.innerHTML = '⏸';
+          musicPlaying = true;
+        }).catch((error) => {
+          console.log('Müzik çalınamadı:', error);
+        });
+      }
+    }
+
+    // Safari için otomatik çalma denemesi (kullanıcı etkileşimi sonrası)
+    function tryAutoPlay() {
+      if (!userInteracted || musicPlaying) return;
+      
+      if (!audioElement) {
+        audioElement = document.getElementById('backgroundMusic');
+        musicButton = document.getElementById('musicControl');
+      }
+      
+      audioElement.play().then(() => {
+        musicButton.innerHTML = '⏸';
+        musicPlaying = true;
+      }).catch(() => {
+        // Ses çalamazsa sessiz kalır
+      });
+    }
+
     // Kullanıcı tarafından sağlanan JavaScript kodu
     let stars = [];
     let spinningStars = [];
@@ -35,14 +119,6 @@
     let explosionTriggered = false;
     let explosionStartTime = 0;
     const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
-
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
     {
         "x": 0.2687,
@@ -20044,7 +20120,14 @@
         "x": 0.5227,
         "y": 0.5713
     }
-]
+];
+    let realStars = [];
+    let fadeStars = [];
+    let fadeTimer = 0;
+    let centerStar = null;
+    let bgFade = 0; // arkaplan kararma için
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
 
     // Yeni değişkenler
     let secondExplosionTriggered = false;
@@ -20177,7 +20260,10 @@
     // Olay dinleyicileri
     function mousePressed() {
       isMouseActive = true;
-     
+      if (!userInteracted) {
+        userInteracted = true;
+        setTimeout(tryAutoPlay, 100);
+      }
     }
 
     function mouseReleased() {
@@ -20186,7 +20272,10 @@
 
     function touchStarted() {
       isTouchActive = true;
-      
+      if (!userInteracted) {
+        userInteracted = true;
+        setTimeout(tryAutoPlay, 100);
+      }
       return false; // varsayılan davranışı engelle
     }
 
