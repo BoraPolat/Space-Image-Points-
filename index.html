@@ -20040,8 +20040,8 @@
         "x": 0.5227,
         "y": 0.5713
     }
-]
-    
+];
+
     let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
     let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
 
@@ -20106,8 +20106,8 @@
 
       for (let i = 0; i < 400; i++) {
         stars.push({
-          x: random(virtualWidth) + offsetX,
-          y: random(virtualHeight) + offsetY,
+          x: random(width),
+          y: random(height),
           size: random(1, 3),
           alpha: random(100, 255),
           baseSpeedX: random(-0.2, 0.2),
@@ -20245,11 +20245,11 @@
         star.x += star.baseSpeedX + star.inertiaX;
         star.y += star.baseSpeedY + star.inertiaY;
 
-        // Yıldızların sınır kontrolü virtual boyutlara göre
-        if (star.x < offsetX) star.x = virtualWidth + offsetX;
-        if (star.x > virtualWidth + offsetX) star.x = offsetX;
-        if (star.y < offsetY) star.y = virtualHeight + offsetY;
-        if (star.y > virtualHeight + offsetY) star.y = offsetY;
+        // Yıldızların sınır kontrolü tüm ekrana göre
+        if (star.x < 0) star.x = width;
+        if (star.x > width) star.x = 0;
+        if (star.y < 0) star.y = height;
+        if (star.y > height) star.y = 0;
         
         if (spinning && spinningStars.length > 0) {
           let closest = null;
@@ -20308,8 +20308,8 @@
             maxMultiplier: 1.70,
             offsetX: random(-20, 20),
             offsetY: random(-20, 20),
-            targetX: virtualWidth / 2 + offsetX,
-            targetY: virtualHeight / 2 + offsetY,
+            targetX: width / 2,
+            targetY: height / 2,
             vx: 0,
             vy: 0
           });
@@ -20375,11 +20375,9 @@
       }
 
       if (centerStar) {
-        // centerStar virtual alanın ortasına ilerliyor
-        let centerTargetX = virtualWidth / 2 + offsetX;
-        let centerTargetY = virtualHeight / 2 + offsetY;
-        centerStar.x += (centerTargetX - centerStar.x) * 0.0015;
-        centerStar.y += (centerTargetY - centerStar.y) * 0.0015;
+        // centerStar ekran ortasına ilerliyor
+        centerStar.x += (width / 2 - centerStar.x) * 0.0015;
+        centerStar.y += (height / 2 - centerStar.y) * 0.0015;
 
         if (!centerStar.particles) centerStar.particles = [];
         if (!centerStar.explosionDone) centerStar.explosionDone = false;
