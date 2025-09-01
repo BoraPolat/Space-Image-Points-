@@ -38,6 +38,14 @@
     </audio>
   </div>
 
+  <!-- Müzik dosyası için audio elementi -->
+  <div id="audio-container">
+    <audio id="backgroundMusic" preload="auto" loop>
+      <source src="music.mp3" type="audio/mpeg">
+      Tarayıcınız ses formatını desteklemiyor.
+    </audio>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
@@ -49,6 +57,9 @@
     let explosionStartTime = 0;
     const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
 
+    // Müzik için değişken
+    let music;
+
     let realStars = [];
     let fadeStars = [];
     let fadeTimer = 0;
@@ -56,6 +67,7 @@
     let bgFade = 0; // arkaplan kararma için
     let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
     let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+
     let allPoints = [
     {
         "x": 0.2687,
@@ -20058,7 +20070,6 @@
         "y": 0.5713
     }
 ]
-
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20615,7 +20626,6 @@
         musicStarted = false;
       }
     }
-
   </script>
 </body>
 </html>
