@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Yaren Animasyonu</title>
+  <title>Yarosum</title>
   <style>
     body {
       touch-action: manipulation;
@@ -20139,12 +20139,31 @@
     }
 
     // Koordinat dönüştürme fonksiyonu
-    function getVirtualCoordinates(normalizedX, normalizedY) {
-      return {
-        x: normalizedX * width,
-        y: normalizedY * virtualHeight + offsetY
-      };
-    }
+    function getVirtualCoordinates(normX, normY) {
+  // normX, normY: 0-1 arası normalize edilmiş koordinatlar
+  const virtualAspect = 16 / 10; // tasarım oranı (senin referans aldığın oran)
+  const screenAspect = windowWidth / windowHeight;
+
+  let scale;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (screenAspect > virtualAspect) {
+    // Ekran daha geniş → yükseklik üzerinden ölçekle
+    scale = windowHeight;
+    offsetX = (windowWidth - scale * virtualAspect) / 2;
+  } else {
+    // Ekran daha uzun → genişlik üzerinden ölçekle
+    scale = windowWidth;
+    offsetY = (windowHeight - scale / virtualAspect) / 2;
+  }
+
+  const x = offsetX + normX * scale * (virtualAspect / 1); 
+  const y = offsetY + normY * scale * (1 / virtualAspect);
+
+  return { x, y };
+}
+
     
     // Olay dinleyicileri
     function mousePressed() {
@@ -20402,7 +20421,7 @@
                     alpha: 255
                   });
                 }
-                for (let i = 0; i < 3000; i++) { // gerçek yıldızları da ekleyelim
+                for (let i = 0; i < 5000; i++) { // gerçek yıldızları da ekleyelim
                   let angle = random(TWO_PI);
                   let speed = random(3, 16);
                   realStars.push({
