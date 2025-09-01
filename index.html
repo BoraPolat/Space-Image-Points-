@@ -20244,7 +20244,7 @@
 
           if (closest && minDist < 200) {
             let angle = atan2(closest.y - star.y, closest.x - star.x);
-            let basePull = map(minDist, 0, 200, 0.5, 0.02);
+            let basePull = map(minDist, 0, 200, 1.5, 0.06);
             let pull = basePull * strongestStar.speedMultiplier;
             star.inertiaX = cos(angle) * pull;
             star.inertiaY = sin(angle) * pull;
@@ -20277,10 +20277,10 @@
             color: star.color,
             angle: random(TWO_PI),
             radius: random(80, 120),
-            baseSpeed: 0.02,
+            baseSpeed: 0.04,
             speedMultiplier: 0,
             acceleration: 0.001,
-            maxMultiplier: 2.0,
+            maxMultiplier: 1.2,
             offsetX: random(-20, 20),
             offsetY: random(-20, 20),
             targetX: width / 2,
@@ -20295,8 +20295,8 @@
       // Dönen yıldızlar ve patlama
       if (spinning) {
         for (let s of spinningStars) {
-          s.x += (s.targetX - s.x) * 0.003;
-          s.y += (s.targetY - s.y) * 0.003;
+          s.x += (s.targetX - s.x) * 0.012;
+          s.y += (s.targetY - s.y) * 0.012;
 
           if (!explosionTriggered) s.speedMultiplier += s.acceleration;
 
@@ -20311,7 +20311,7 @@
             explosionTriggered = true;
             for (let ex of spinningStars) {
               let angle = random(TWO_PI);
-              let force = random(5, 15);
+              let force = random(5, 10);
               ex.vx = cos(angle) * force;
               ex.vy = sin(angle) * force;
             }
@@ -20322,7 +20322,7 @@
           if (explosionTriggered) {
             s.x += s.vx;
             s.y += s.vy;
-            s.alpha *= 0.9;
+            s.alpha *= 0.85;
           }
         }
       }
@@ -20388,7 +20388,7 @@
             if (!centerStar.waitStart) centerStar.waitStart = millis();
 
             if (waitElapsed >= 2) {
-              // Patlama ve gerçek yıldızları oluştur
+              //  Patlama ve gerçek yıldızları oluştur
               if (centerStar.particles.length === 0) {
                 for (let i = 0; i < 400; i++) { // daha fazla parçacık
                   let angle = random(TWO_PI);
