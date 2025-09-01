@@ -20,28 +20,9 @@
       touch-action: none;
       user-select: none;
     }
-    #fullscreen-button {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 10px 15px;
-      background-color: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-family: sans-serif;
-      cursor: pointer;
-      z-index: 10;
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-    }
-    #fullscreen-button:active {
-      transform: scale(0.95);
-    }
   </style>
 </head>
 <body>
-  <button id="fullscreen-button">Tam Ekran</button>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
@@ -58,9 +39,6 @@
     let fadeTimer = 0;
     let centerStar = null;
     let bgFade = 0; // arkaplan kararma için
-
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
     {
         "x": 0.2687,
@@ -20063,6 +20041,10 @@
         "y": 0.5713
     }
 ]
+    
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20078,7 +20060,9 @@
 
     // Ekran oranı düzeltmesi için değişkenler
     let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
+    let virtualWidth;  // 16:10 oranında hesaplanacak sanal genişlik
     let offsetY; // Görselı ortalamak için Y ekseni kaydırması
+    let offsetX; // Görselı ortalamak için X ekseni kaydırması
 
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
@@ -20102,7 +20086,7 @@
       createCanvas(windowWidth, windowHeight);
       lockScreenOrientation();
       
-      // 16:10 oranı için sanal yükseklik hesapla
+      // 16:10 oranı için sanal boyutları hesapla
       calculateVirtualDimensions();
       
       window.addEventListener('resize', () => {
@@ -20122,8 +20106,8 @@
 
       for (let i = 0; i < 400; i++) {
         stars.push({
-          x: random(width),
-          y: random(height),
+          x: random(virtualWidth) + offsetX,
+          y: random(virtualHeight) + offsetY,
           size: random(1, 3),
           alpha: random(100, 255),
           baseSpeedX: random(-0.2, 0.2),
@@ -20138,26 +20122,50 @@
       noStroke();
     }
 
-    // 16:10 oranı için sanal boyutları hesapla
+    // 16:10 oranı için sanal boyutları hesapla - Tüm ekran türleri için optimize edilmiş
     function calculateVirtualDimensions() {
-      // Ekran genişliğini al, 16:10 oranında yükseklik hesapla
-      virtualHeight = width * (10 / 16);
+      const targetRatio = 16 / 10; // 1.6
+      const currentRatio = width / height;
       
-      // Eğer hesaplanan yükseklik gerçek yükseklikten küçükse, görselı ortala
-      if (virtualHeight <= height) {
-        offsetY = (height - virtualHeight) / 2;
+      if (currentRatio <= targetRatio) {
+        // Dar ekranlar (16:9, 16:8 vb.) veya tam oran
+        // Genişliğe bak, yüksekliği hesapla (mevcut algoritma)
+        virtualHeight = width * (10 / 16);
+        virtualWidth = width;
+        
+        if (virtualHeight <= height) {
+          offsetY = (height - virtualHeight) / 2;
+          offsetX = 0;
+        } else {
+          // Bu durumda genişliği ayarla (nadiren olur)
+          virtualWidth = height * (16 / 10);
+          virtualHeight = height;
+          offsetY = 0;
+          offsetX = (width - virtualWidth) / 2;
+        }
       } else {
-        // Eğer sanal yükseklik gerçek yükseklikten büyükse, genişliği ayarla
-        let virtualWidth = height * (16 / 10);
+        // Geniş ekranlar (ultrawide vb.)
+        // Yüksekliğe bak, genişliği hesapla
+        virtualWidth = height * (16 / 10);
         virtualHeight = height;
-        offsetY = 0;
+        
+        if (virtualWidth <= width) {
+          offsetX = (width - virtualWidth) / 2;
+          offsetY = 0;
+        } else {
+          // Bu durumda yüksekliği ayarla (nadiren olur)
+          virtualHeight = width * (10 / 16);
+          virtualWidth = width;
+          offsetY = (height - virtualHeight) / 2;
+          offsetX = 0;
+        }
       }
     }
 
-    // Koordinat dönüştürme fonksiyonu
+    // Koordinat dönüştürme fonksiyonu - hem X hem Y offset desteği
     function getVirtualCoordinates(normalizedX, normalizedY) {
       return {
-        x: normalizedX * width,
+        x: normalizedX * virtualWidth + offsetX,
         y: normalizedY * virtualHeight + offsetY
       };
     }
@@ -20237,10 +20245,11 @@
         star.x += star.baseSpeedX + star.inertiaX;
         star.y += star.baseSpeedY + star.inertiaY;
 
-        if (star.x < 0) star.x = width;
-        if (star.x > width) star.x = 0;
-        if (star.y < 0) star.y = height;
-        if (star.y > height) star.y = 0;
+        // Yıldızların sınır kontrolü virtual boyutlara göre
+        if (star.x < offsetX) star.x = virtualWidth + offsetX;
+        if (star.x > virtualWidth + offsetX) star.x = offsetX;
+        if (star.y < offsetY) star.y = virtualHeight + offsetY;
+        if (star.y > virtualHeight + offsetY) star.y = offsetY;
         
         if (spinning && spinningStars.length > 0) {
           let closest = null;
@@ -20299,8 +20308,8 @@
             maxMultiplier: 1.70,
             offsetX: random(-20, 20),
             offsetY: random(-20, 20),
-            targetX: width / 2,
-            targetY: height / 2,
+            targetX: virtualWidth / 2 + offsetX,
+            targetY: virtualHeight / 2 + offsetY,
             vx: 0,
             vy: 0
           });
@@ -20366,9 +20375,11 @@
       }
 
       if (centerStar) {
-        // centerStar ekran ortasına ilerliyor
-        centerStar.x += (width / 2 - centerStar.x) * 0.0015;
-        centerStar.y += (height / 2 - centerStar.y) * 0.0015;
+        // centerStar virtual alanın ortasına ilerliyor
+        let centerTargetX = virtualWidth / 2 + offsetX;
+        let centerTargetY = virtualHeight / 2 + offsetY;
+        centerStar.x += (centerTargetX - centerStar.x) * 0.0015;
+        centerStar.y += (centerTargetY - centerStar.y) * 0.0015;
 
         if (!centerStar.particles) centerStar.particles = [];
         if (!centerStar.explosionDone) centerStar.explosionDone = false;
@@ -20404,7 +20415,7 @@
             if (!centerStar.waitStart) centerStar.waitStart = millis();
 
             if (waitElapsed >= 2) {
-              // Patlama ve gerçek yıldızları oluştur
+              //  Patlama ve gerçek yıldızları oluştur
               if (centerStar.particles.length === 0) {
                 for (let i = 0; i < 400; i++) { // daha fazla parçacık
                   let angle = random(TWO_PI);
@@ -20493,7 +20504,7 @@
             // allPoints dizisindeki koordinatlar 0-1 arasında normalized olmalı
             // Örnek: allPoints[0] = {x: 0.5, y: 0.3} gibi
             const virtualCoords = getVirtualCoordinates(
-              allPoints[s.targetIndex].x,
+              allPoints[s.targetIndex].x, 
               allPoints[s.targetIndex].y
             );
             const targetX = virtualCoords.x;
@@ -20531,21 +20542,6 @@
         }
       }
     }
-
-    // Tam ekran işlevselliği
-    const button = document.getElementById('fullscreen-button');
-    button.addEventListener('click', () => {
-        const elem = document.documentElement;
-
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) { /* Safari */
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE11 */
-            elem.msRequestFullscreen();
-        }
-    });
-
   </script>
 </body>
 </html>
