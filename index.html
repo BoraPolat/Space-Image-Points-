@@ -20062,7 +20062,7 @@
         "x": 0.5227,
         "y": 0.5713
     }
-];
+]
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20535,11 +20535,14 @@
     // Tam ekran işlevselliği
     const button = document.getElementById('fullscreen-button');
     button.addEventListener('click', () => {
-        // iOS Safari için özel tam ekran yöntemi
-        if (document.documentElement.webkitRequestFullscreen) {
-            document.documentElement.webkitRequestFullscreen();
-        } else if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
+        const elem = document.documentElement;
+
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
         }
     });
 
