@@ -20,9 +20,24 @@
       touch-action: none;
       user-select: none;
     }
+    #audio-container {
+      position: absolute;
+      top: -1000px;
+      left: -1000px;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
+  <!-- Müzik dosyası için audio elementi -->
+  <div id="audio-container">
+    <audio id="backgroundMusic" preload="auto" loop>
+      <source src="music.mp3" type="audio/mpeg">
+      Tarayıcınız ses formatını desteklemiyor.
+    </audio>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
     // Kullanıcı tarafından sağlanan JavaScript kodu
@@ -39,6 +54,8 @@
     let fadeTimer = 0;
     let centerStar = null;
     let bgFade = 0; // arkaplan kararma için
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
     {
         "x": 0.2687,
@@ -20040,10 +20057,7 @@
         "x": 0.5227,
         "y": 0.5713
     }
-];
-
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+]
 
     // Yeni değişkenler
     let secondExplosionTriggered = false;
@@ -20057,6 +20071,10 @@
     // Yeni eklenen değişkenler
     let isMouseActive = false;
     let isTouchActive = false;
+
+    // Müzik için değişkenler
+    let backgroundMusic;
+    let musicStarted = false;
 
     // Ekran oranı düzeltmesi için değişkenler
     let virtualHeight; // 16:10 oranında hesaplanacak sanal yükseklik
@@ -20082,9 +20100,34 @@
     window.addEventListener('touchend', preventDefault, { passive: false });
     window.addEventListener('touchmove', preventDefault, { passive: false });
 
+    // Müzik başlatma fonksiyonu
+    function startMusic() {
+      if (!musicStarted && backgroundMusic) {
+        backgroundMusic.play().then(() => {
+          console.log("Müzik başlatıldı");
+          musicStarted = true;
+        }).catch((error) => {
+          console.log("Müzik başlatılamadı:", error);
+          // Kullanıcı etkileşimi gerekebilir
+        });
+      }
+    }
+
+    // Müzik durdurma fonksiyonu
+    function stopMusic() {
+      if (backgroundMusic && musicStarted) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        musicStarted = false;
+      }
+    }
+
     function setup() {
       createCanvas(windowWidth, windowHeight);
       lockScreenOrientation();
+      
+      // Müzik öğesini al
+      backgroundMusic = document.getElementById('backgroundMusic');
       
       // 16:10 oranı için sanal boyutları hesapla
       calculateVirtualDimensions();
@@ -20173,6 +20216,10 @@
     // Olay dinleyicileri
     function mousePressed() {
       isMouseActive = true;
+      // İlk kullanıcı etkileşiminde müziği hazırla (autoplay politikası için)
+      if (backgroundMusic && !musicStarted) {
+        backgroundMusic.load();
+      }
     }
 
     function mouseReleased() {
@@ -20181,6 +20228,10 @@
 
     function touchStarted() {
       isTouchActive = true;
+      // İlk kullanıcı etkileşiminde müziği hazırla (autoplay politikası için)
+      if (backgroundMusic && !musicStarted) {
+        backgroundMusic.load();
+      }
       return false; // varsayılan davranışı engelle
     }
 
@@ -20188,7 +20239,6 @@
       isTouchActive = false;
       return false; // varsayılan davranışı engelle
     }
-
 
     function draw() {
       // Arka plan normalde siyah, patlamadan sonra kademeli kararma
@@ -20287,6 +20337,9 @@
         starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
         centerStar = starsToSpin[0]; // özel yıldız
         centerStar.size = 2; // orta boyut olarak sabitlendi
+        
+        // MÜZİK BAŞLAT
+        startMusic();
       }
 
       // Sıradaki yıldızları 0.05 saniyede bir spinningStars dizisine ekle
@@ -20540,6 +20593,29 @@
         }
       }
     }
+
+    // Müzik başlatma fonksiyonu
+    function startMusic() {
+      if (!musicStarted && backgroundMusic) {
+        backgroundMusic.play().then(() => {
+          console.log("Müzik başlatıldı");
+          musicStarted = true;
+        }).catch((error) => {
+          console.log("Müzik başlatılamadı:", error);
+          // Kullanıcı etkileşimi gerekebilir
+        });
+      }
+    }
+
+    // Müzik durdurma fonksiyonu
+    function stopMusic() {
+      if (backgroundMusic && musicStarted) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        musicStarted = false;
+      }
+    }
+
   </script>
 </body>
 </html>
