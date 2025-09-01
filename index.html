@@ -2,15 +2,13 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Yarosum</title>
   <style>
     body {
       touch-action: manipulation;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
-      user-select: none;
-      text-size-adjust: none;
       -webkit-text-size-adjust: none;
       -webkit-tap-highlight-color: rgba(0,0,0,0);
       overflow: hidden;
@@ -20,127 +18,15 @@
     canvas {
       display: block;
       touch-action: none;
-      -webkit-user-select: none;
       user-select: none;
-    }
-    
-    /* Müzik kontrol butonu */
-    #musicControl {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 14px;
-      -webkit-user-select: none;
-      user-select: none;
-      transition: background 0.3s;
-    }
-    
-    #musicControl:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-    
-    #musicControl:active {
-      background: rgba(255, 255, 255, 0.4);
     }
   
   </style>
 </head>
 <body>
 
-  <!-- Müzik kontrol butonu -->
-  <div id="musicControl" onclick="toggleMusic()">▶</div>
-  
-  <!-- Ses dosyası -->
-  <audio id="backgroundMusic" loop preload="auto">
-    <source src="music.mp3" type="audio/mpeg">
-    <source src="music.wav" type="audio/wav">
-    <source src="music.ogg" type="audio/ogg">
-  </audio>
-
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
-    // Müzik kontrol değişkenleri
-    let musicPlaying = false;
-    let audioElement = null;
-    let musicButton = null;
-    let userInteracted = false;
-
-    // Müzik kontrol fonksiyonu
-    function toggleMusic() {
-      if (!audioElement) {
-        audioElement = document.getElementById('backgroundMusic');
-        musicButton = document.getElementById('musicControl');
-      }
-      
-      userInteracted = true;
-      console.log('Buton tıklandı, musicPlaying:', musicPlaying);
-      
-      if (musicPlaying) {
-        audioElement.pause();
-        musicButton.innerHTML = '▶';
-        musicButton.style.color = 'white';
-        musicPlaying = false;
-        console.log('Müzik durduruldu');
-      } else {
-        // Ses seviyesini kontrol et
-        audioElement.volume = 0.7;
-        console.log('Müzik başlatılmaya çalışılıyor...');
-        
-        // Dosya yüklü mü kontrol et
-        audioElement.addEventListener('loadstart', () => console.log('Dosya yüklenmeye başladı'));
-        audioElement.addEventListener('canplay', () => console.log('Dosya çalmaya hazır'));
-        audioElement.addEventListener('error', (e) => console.log('Ses dosyası hatası:', e));
-        
-        audioElement.play().then(() => {
-          musicButton.innerHTML = '⏸';
-          musicButton.style.color = '#4ade80';
-          musicPlaying = true;
-          console.log('Müzik başarıyla başlatıldı');
-        }).catch((error) => {
-          console.error('Müzik çalınamadı:', error);
-          console.log('Audio src:', audioElement.src);
-          console.log('Audio readyState:', audioElement.readyState);
-          console.log('Audio networkState:', audioElement.networkState);
-          
-          musicButton.innerHTML = '❌';
-          musicButton.style.color = '#ef4444';
-          
-          setTimeout(() => {
-            musicButton.innerHTML = '▶';
-            musicButton.style.color = 'white';
-          }, 3000);
-        });
-      }
-    }
-
-    // Safari için otomatik çalma denemesi (kullanıcı etkileşimi sonrası)
-    function tryAutoPlay() {
-      if (!userInteracted || musicPlaying) return;
-      
-      if (!audioElement) {
-        audioElement = document.getElementById('backgroundMusic');
-        musicButton = document.getElementById('musicControl');
-      }
-      
-      audioElement.play().then(() => {
-        musicButton.innerHTML = '⏸';
-        musicPlaying = true;
-      }).catch(() => {
-        // Ses çalamazsa sessiz kalır
-      });
-    }
-
     // Kullanıcı tarafından sağlanan JavaScript kodu
     let stars = [];
     let spinningStars = [];
@@ -149,14 +35,6 @@
     let explosionTriggered = false;
     let explosionStartTime = 0;
     const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
-
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
     {
         "x": 0.2687,
@@ -20159,6 +20037,14 @@
         "y": 0.5713
     }
 ];
+    let realStars = [];
+    let fadeStars = [];
+    let fadeTimer = 0;
+    let centerStar = null;
+    let bgFade = 0; // arkaplan kararma için
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
+
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20290,10 +20176,7 @@
     // Olay dinleyicileri
     function mousePressed() {
       isMouseActive = true;
-      if (!userInteracted) {
-        userInteracted = true;
-        setTimeout(tryAutoPlay, 100);
-      }
+     
     }
 
     function mouseReleased() {
@@ -20302,10 +20185,7 @@
 
     function touchStarted() {
       isTouchActive = true;
-      if (!userInteracted) {
-        userInteracted = true;
-        setTimeout(tryAutoPlay, 100);
-      }
+      
       return false; // varsayılan davranışı engelle
     }
 
@@ -20668,3 +20548,4 @@
   </script>
 </body>
 </html>
+
