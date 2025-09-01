@@ -61,6 +61,8 @@
   <!-- Ses dosyası -->
   <audio id="backgroundMusic" loop preload="auto">
     <source src="music.mp3" type="audio/mpeg">
+    <source src="music.wav" type="audio/wav">
+    <source src="music.ogg" type="audio/ogg">
   </audio>
 
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
@@ -83,13 +85,26 @@
       if (musicPlaying) {
         audioElement.pause();
         musicButton.innerHTML = '▶';
+        musicButton.style.color = 'white';
         musicPlaying = false;
       } else {
+        // Ses seviyesini kontrol et
+        audioElement.volume = 0.7;
+        
         audioElement.play().then(() => {
           musicButton.innerHTML = '⏸';
+          musicButton.style.color = '#4ade80';
           musicPlaying = true;
         }).catch((error) => {
           console.log('Müzik çalınamadı:', error);
+          musicButton.innerHTML = '❌';
+          musicButton.style.color = '#ef4444';
+          
+          // Dosya yolu kontrolü için alternatif deneme
+          setTimeout(() => {
+            musicButton.innerHTML = '▶';
+            musicButton.style.color = 'white';
+          }, 2000);
         });
       }
     }
@@ -119,6 +134,14 @@
     let explosionTriggered = false;
     let explosionStartTime = 0;
     const transitionTime = 2000; // 2 saniye (milisaniye cinsinden)
+
+    let realStars = [];
+    let fadeStars = [];
+    let fadeTimer = 0;
+    let centerStar = null;
+    let bgFade = 0; // arkaplan kararma için
+    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
+    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
     {
         "x": 0.2687,
@@ -20121,14 +20144,6 @@
         "y": 0.5713
     }
 ];
-    let realStars = [];
-    let fadeStars = [];
-    let fadeTimer = 0;
-    let centerStar = null;
-    let bgFade = 0; // arkaplan kararma için
-    let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
-    let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
-
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
