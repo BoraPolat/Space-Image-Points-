@@ -20244,7 +20244,7 @@
 
           if (closest && minDist < 200) {
             let angle = atan2(closest.y - star.y, closest.x - star.x);
-            let basePull = map(minDist, 0, 200, 1.2, 0.06);
+            let basePull = map(minDist, 0, 200, 1.0, 0.04);
             let pull = basePull * strongestStar.speedMultiplier;
             star.inertiaX = cos(angle) * pull;
             star.inertiaY = sin(angle) * pull;
@@ -20476,32 +20476,10 @@
             // ÖNEMLİ DEĞİŞİKLİK: Koordinat dönüştürme burada yapılıyor
             // allPoints dizisindeki koordinatlar 0-1 arasında normalized olmalı
             // Örnek: allPoints[0] = {x: 0.5, y: 0.3} gibi
-            function getVirtualCoordinates(normX, normY) {
-  // normX, normY -> 0-1 arası normalize edilmiş koordinatlar
-  const virtualWidth = 16;
-  const virtualHeight = 10;
-  const virtualAspect = virtualWidth / virtualHeight;
-
-  const screenAspect = windowWidth / windowHeight;
-
-  let scale, offsetX = 0, offsetY = 0;
-
-  if (screenAspect > virtualAspect) {
-    // Ekran daha geniş → yüksekliği baz al
-    scale = windowHeight / virtualHeight;
-    offsetX = (windowWidth - virtualWidth * scale) / 2;
-  } else {
-    // Ekran daha dar/uzun → genişliği baz al
-    scale = windowWidth / virtualWidth;
-    offsetY = (windowHeight - virtualHeight * scale) / 2;
-  }
-
-  const x = offsetX + normX * virtualWidth * scale;
-  const y = offsetY + normY * virtualHeight * scale;
-
-  return { x, y };
-}
-
+            const virtualCoords = getVirtualCoordinates(
+              allPoints[s.targetIndex].x, 
+              allPoints[s.targetIndex].y
+            );
             const targetX = virtualCoords.x;
             const targetY = virtualCoords.y;
 
