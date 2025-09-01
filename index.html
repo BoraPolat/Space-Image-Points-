@@ -20277,10 +20277,10 @@
             color: star.color,
             angle: random(TWO_PI),
             radius: random(80, 120),
-            baseSpeed: 0.04,
+            baseSpeed: 0.06,
             speedMultiplier: 0,
             acceleration: 0.001,
-            maxMultiplier: 1.2,
+            maxMultiplier: 2,
             offsetX: random(-20, 20),
             offsetY: random(-20, 20),
             targetX: width / 2,
@@ -20295,8 +20295,8 @@
       // Dönen yıldızlar ve patlama
       if (spinning) {
         for (let s of spinningStars) {
-          s.x += (s.targetX - s.x) * 0.012;
-          s.y += (s.targetY - s.y) * 0.012;
+          s.x += (s.targetX - s.x) * 0.015;
+          s.y += (s.targetY - s.y) * 0.015;
 
           if (!explosionTriggered) s.speedMultiplier += s.acceleration;
 
