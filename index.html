@@ -23,16 +23,8 @@
   </style>
 </head>
 <body>
-  <!-- Müzik dosyası -->
-  <audio id="backgroundMusic" preload="auto" loop>
-    <source src="music.mp3" type="audio/mpeg">
-  </audio>
-
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script>
-    // Müzik kontrol değişkeni
-    let audioStarted = false;
-    
     // Kullanıcı tarafından sağlanan JavaScript kodu
     let stars = [];
     let spinningStars = [];
@@ -47,6 +39,7 @@
     let fadeTimer = 0;
     let centerStar = null;
     let bgFade = 0; // arkaplan kararma için
+
     let starsToSpin = []; // seçilecek yıldızların sıraya alınacağı dizi
     let spinTimer = 0; // 0.05 saniyede bir yıldız eklemek için
     let allPoints = [
@@ -20051,6 +20044,11 @@
         "y": 0.5713
     }
 ]
+      
+    // Ses değişkenleri
+    let backgroundMusic;
+    let musicStarted = false;
+
     // Yeni değişkenler
     let secondExplosionTriggered = false;
     let thirdExplosionTriggered = false;
@@ -20069,30 +20067,6 @@
     let virtualWidth;  // 16:10 oranında hesaplanacak sanal genişlik
     let offsetY; // Görselı ortalamak için Y ekseni kaydırması
     let offsetX; // Görselı ortalamak için X ekseni kaydırması
-
-    // Müzik başlatma fonksiyonu
-    function startBackgroundMusic() {
-      if (!audioStarted) {
-        const audio = document.getElementById('backgroundMusic');
-        audio.volume = 0.7; // Ses seviyesi %70
-        
-        // Safari için özel çözüm
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            audioStarted = true;
-            console.log('Müzik başlatıldı');
-          }).catch(error => {
-            // Safari'de hata durumunda tekrar dene
-            setTimeout(() => {
-              audio.play().then(() => {
-                audioStarted = true;
-              }).catch(e => console.log('Müzik başlatılamadı:', e));
-            }, 100);
-          });
-        }
-      }
-    }
 
     // Cihazın yan çevrilmesini sağlamak için eklenen kod
     function lockScreenOrientation() {
@@ -20118,6 +20092,11 @@
       
       // 16:10 oranı için sanal boyutları hesapla
       calculateVirtualDimensions();
+      
+      // Müziği yükle
+      backgroundMusic = new Audio('music.mp3'); // Dosya adını değiştir
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0.5; // Ses seviyesi (0.0 - 1.0 arası)
       
       window.addEventListener('resize', () => {
         resizeCanvas(windowWidth, windowHeight);
@@ -20314,12 +20293,16 @@
       // 5 saniye basılı ise spinning başlatacak yıldızları sıraya al
       if (holdTime >= 5 && !spinning) {
         spinning = true;
+        
+        // Müziği başlat (spinning animasyonu başlarken)
+        if (!musicStarted) {
+          backgroundMusic.play().catch(err => console.log('Müzik başlatılamadı:', err));
+          musicStarted = true;
+        }
+        
         starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
         centerStar = starsToSpin[0]; // özel yıldız
         centerStar.size = 2; // orta boyut olarak sabitlendi
-        
-        // MÜZİK BAŞLAT - Spinning başladığında
-        startBackgroundMusic();
       }
 
       // Sıradaki yıldızları 0.05 saniyede bir spinningStars dizisine ekle
@@ -20576,3 +20559,4 @@
   </script>
 </body>
 </html>
+
