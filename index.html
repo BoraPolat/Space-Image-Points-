@@ -21,8 +21,6 @@
       user-select: none;
     }
   </style>
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.svg">
 </head>
 <body>
 
@@ -71,9 +69,9 @@
     let musicStarted = false;
     let audioUnlocked = false;
     let musicFadeIn = false;
-    let targetVolume = 0.2;
+    let targetVolume = 0.1;
     let currentVolume = 0;
-    let fadeInDuration = 8000; // 3 saniye boyunca yavaşça artar
+    let fadeInDuration = 12000; // 3 saniye boyunca yavaşça artar
 
     // Ekran oranı değişkenleri
     let virtualHeight; 
@@ -300,7 +298,7 @@
           let d = dist(tx, ty, star.x, star.y);
           if (d < 250 && !spinning) {
             let angle = atan2(ty - star.y, tx - star.x);
-            let pull = 0.5;
+            let pull = 0.3;
             star.inertiaX = cos(angle) * pull;
             star.inertiaY = sin(angle) * pull;
             star.inertiaCounter = 30;
@@ -600,4 +598,3 @@
   </script>
 </body>
 </html>
-
