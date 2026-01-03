@@ -1,11 +1,5 @@
 <svg width="512" height="512" viewBox="-50 -50 612 612" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="deepSpaceGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-      <stop offset="0%" stop-color="#120024"/>
-      <stop offset="80%" stop-color="#05000a"/>
-      <stop offset="100%" stop-color="#000000"/>
-    </radialGradient>
-
     <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="20%" stop-color="#e0b0ff"/>
@@ -29,8 +23,6 @@
       </feMerge>
     </filter>
   </defs>
-
-  <rect x="-50" y="-50" width="612" height="612" fill="url(#deepSpaceGrad)"/>
 
   <g filter="url(#intensiveGlow)" stroke-linecap="round">
       
