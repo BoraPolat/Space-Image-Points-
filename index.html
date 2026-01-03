@@ -68,6 +68,10 @@
     // --- MÜZİK KONTROL DEĞİŞKENLERİ ---
     let musicStarted = false;
     let audioUnlocked = false;
+    let musicFadeIn = false;
+    let targetVolume = 0.2;
+    let currentVolume = 0;
+    let fadeInDuration = 8000; // 3 saniye boyunca yavaşça artar
 
     // Ekran oranı değişkenleri
     let virtualHeight; 
@@ -193,25 +197,43 @@
       }
     }
 
-    // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON ---
-    // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON ---
+    // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON (FADE-IN İLE) ---
     function startMusic() {
-      // Sadece müzik daha önce başlamadıysa çalıştır
       if (!musicStarted) {
         let audio = document.getElementById("bgMusic");
         
-        // Ses seviyesini ayarla ve sessiz modda olmadığından emin ol
-        audio.volume = 0.5; 
+        // Ses seviyesini 0'dan başlat
+        currentVolume = 0;
+        audio.volume = 0; 
         audio.muted = false;
         
         audio.play().then(() => {
           musicStarted = true;
-          console.log("Müzik 5. saniyede başladı!");
+          musicFadeIn = true;
+          console.log("Müzik 5. saniyede fade-in ile başladı!");
         }).catch(error => {
           console.log("Oynatma hatası:", error);
-          // Eğer unlockAudio çalışmadıysa, burada tekrar deneyebiliriz (Fallback)
           musicStarted = true; 
         });
+      }
+    }
+
+    // --- MÜZİK FADE-IN KONTROLÜ (draw() içinde çağrılacak) ---
+    function updateMusicVolume() {
+      if (musicFadeIn && currentVolume < targetVolume) {
+        let audio = document.getElementById("bgMusic");
+        
+        // Her frame'de yavaşça ses seviyesini artır
+        let increment = (targetVolume / fadeInDuration) * deltaTime;
+        currentVolume += increment;
+        
+        if (currentVolume >= targetVolume) {
+          currentVolume = targetVolume;
+          musicFadeIn = false;
+          console.log("Müzik hedef ses seviyesine ulaştı!");
+        }
+        
+        audio.volume = currentVolume;
       }
     }
 
@@ -239,6 +261,10 @@
 
     function draw() {
       background(0);
+      
+      // Müzik fade-in kontrolü
+      updateMusicVolume();
+      
       if (explosionTriggered) {
         if (bgFade < 255) bgFade += 0.2;
         fill(0, bgFade);
@@ -325,7 +351,7 @@
 
       // --- MÜZİĞİN VE SAHNENİN BAŞLADIĞI YER ---
       if (holdTime >= 5 && !spinning) {
-        startMusic(); // 5 saniye dolunca önceden kilidi açılmış müziği başlat
+        startMusic(); // 5 saniye dolunca fade-in ile müziği başlat
         
         spinning = true;
         starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
@@ -572,4 +598,3 @@
   </script>
 </body>
 </html>
-
