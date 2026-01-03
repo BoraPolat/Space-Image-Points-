@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Space</title>
+  <title>Yarosum</title>
   <style>
     body {
       touch-action: manipulation;
@@ -29,7 +29,7 @@
     Tarayıcınız ses elementini desteklemiyor.
   </audio>
 
-  <!-- PUANLAR DOSYASI - P5.JS'DEN ÖNCE YÜKLENMELİ -->
+  <!-- PUANLAR DOSYASI - Cloudflare Pages'de aynı klasörde olacak -->
   <script src="points-data.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
@@ -170,16 +170,23 @@
       };
     }
     
-    // --- iOS İÇİN KRİTİK FONKSİYON: SES KİLİDİNİ AÇ ---
+    // --- iOS İÇİN KRİTİK FONKSİYON: SES KİLİDİNİ AÇ (SESSİZCE) ---
     function unlockAudio() {
       if (!audioUnlocked) {
         let audio = document.getElementById("bgMusic");
-        // Sesi oynat ve hemen durdur. Bu işlem iOS'a "Kullanıcı etkileşimi var" der.
+        
+        // ÖNEMLİ: Kilit açarken ses çıkmaması için geçici olarak sessize al
+        audio.muted = true; 
+        
         audio.play().then(() => {
+          // Tarayıcı oynatmaya izin verdi, hemen durdur
           audio.pause();
           audio.currentTime = 0; // Başa sar
-          audioUnlocked = true; // Kilit açıldı, artık istediğimiz zaman çalabiliriz
-          console.log("Ses sistemi iOS için açıldı (Unlocked).");
+          
+          // Sesi tekrar aç (ama şu an pause modunda olduğu için çalmayacak)
+          audio.muted = false; 
+          audioUnlocked = true; 
+          console.log("Ses sistemi sessizce açıldı (Unlocked).");
         }).catch(error => {
           console.log("Unlock denemesi başarısız oldu (henüz):", error);
         });
@@ -187,15 +194,23 @@
     }
 
     // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON ---
+    // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON ---
     function startMusic() {
+      // Sadece müzik daha önce başlamadıysa çalıştır
       if (!musicStarted) {
         let audio = document.getElementById("bgMusic");
+        
+        // Ses seviyesini ayarla ve sessiz modda olmadığından emin ol
         audio.volume = 0.5; 
+        audio.muted = false;
+        
         audio.play().then(() => {
           musicStarted = true;
           console.log("Müzik 5. saniyede başladı!");
         }).catch(error => {
           console.log("Oynatma hatası:", error);
+          // Eğer unlockAudio çalışmadıysa, burada tekrar deneyebiliriz (Fallback)
+          musicStarted = true; 
         });
       }
     }
@@ -556,5 +571,4 @@
     }
   </script>
 </body>
-
 </html>
