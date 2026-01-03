@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Yarosum</title>
+  <style>
+    body {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -webkit-text-size-adjust: none;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      overflow: hidden;
+      margin: 0;
+      background-color: #000;
+    }
+    canvas {
+      display: block;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="bgMusic" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+    Tarayıcınız ses elementini desteklemiyor.
+  </audio>
+
+  <!-- PUANLAR DOSYASI - P5.JS'DEN ÖNCE YÜKLENMELİ -->
+  <script src="points-data.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script>
+    // --- DEĞİŞKENLER ---
+    let stars = [];
+    let spinningStars = [];
+    let holdTime = 0;
+    let spinning = false;
+    let explosionTriggered = false;
+    let explosionStartTime = 0;
+    const transitionTime = 2000; 
+
+    // PUANLAR - points-data.js'den gelecek (allPoints değişkeni otomatik tanımlı olacak)
+
+    let realStars = [];
+    let fadeStars = [];
+    let fadeTimer = 0;
+    let centerStar = null;
+    let bgFade = 0; 
+    let starsToSpin = []; 
+    let spinTimer = 0; 
+
+    let secondExplosionTriggered = false;
+    let thirdExplosionTriggered = false;
+    let secondExplosionStartTime = 0;
+    let thirdExplosionStartTime = 0;
+    let affectedStars = []; 
+    let waveRadius = 0; 
+    let waveVisible = false;
+    let realStarsCreatedTime = 0; 
+    
+    let isMouseActive = false;
+    let isTouchActive = false;
+
+    // --- MÜZİK KONTROL DEĞİŞKENLERİ ---
+    let musicStarted = false;
+    let audioUnlocked = false;
+
+    // Ekran oranı değişkenleri
+    let virtualHeight; 
+    let virtualWidth;  
+    let offsetY; 
+    let offsetX; 
+
+    function lockScreenOrientation() {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape-primary").catch(function(error) {
+          // console.error("Ekran yönü kilitlenemedi");
+        });
+      }
+    }
+
+    function preventDefault(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    // Passive: false, iOS Safari'de touch olaylarını daha iyi yönetir
+    window.addEventListener('touchstart', preventDefault, { passive: false });
+    window.addEventListener('touchend', preventDefault, { passive: false });
+    window.addEventListener('touchmove', preventDefault, { passive: false });
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      lockScreenOrientation();
+      
+      calculateVirtualDimensions();
+      
+      window.addEventListener('resize', () => {
+        resizeCanvas(windowWidth, windowHeight);
+        calculateVirtualDimensions();
+      });
+
+      let starColors = [
+        color(255, 255, 255), 
+        color(200, 220, 255), 
+        color(180, 180, 255), 
+        color(255, 255, 255), 
+        color(200, 220, 255), 
+        color(180, 180, 255) 
+      ];
+
+      for (let i = 0; i < 400; i++) {
+        stars.push({
+          x: random(width),
+          y: random(height),
+          size: random(1, 3),
+          alpha: random(100, 255),
+          baseSpeedX: random(-0.2, 0.2),
+          baseSpeedY: random(-0.2, 0.2),
+          inertiaX: 0,
+          inertiaY: 0,
+          inertiaCounter: 0,
+          color: random(starColors)
+        });
+      }
+
+      noStroke();
+    }
+
+    function calculateVirtualDimensions() {
+      const targetRatio = 16 / 10; 
+      const currentRatio = width / height;
+      
+      if (currentRatio <= targetRatio) {
+        virtualHeight = width * (10 / 16);
+        virtualWidth = width;
+        
+        if (virtualHeight <= height) {
+          offsetY = (height - virtualHeight) / 2;
+          offsetX = 0;
+        } else {
+          virtualWidth = height * (16 / 10);
+          virtualHeight = height;
+          offsetY = 0;
+          offsetX = (width - virtualWidth) / 2;
+        }
+      } else {
+        virtualWidth = height * (16 / 10);
+        virtualHeight = height;
+        
+        if (virtualWidth <= width) {
+          offsetX = (width - virtualWidth) / 2;
+          offsetY = 0;
+        } else {
+          virtualHeight = width * (10 / 16);
+          virtualWidth = width;
+          offsetY = (height - virtualHeight) / 2;
+          offsetX = 0;
+        }
+      }
+    }
+
+    function getVirtualCoordinates(normalizedX, normalizedY) {
+      return {
+        x: normalizedX * virtualWidth + offsetX,
+        y: normalizedY * virtualHeight + offsetY
+      };
+    }
+    
+    // --- iOS İÇİN KRİTİK FONKSİYON: SES KİLİDİNİ AÇ ---
+    function unlockAudio() {
+      if (!audioUnlocked) {
+        let audio = document.getElementById("bgMusic");
+        // Sesi oynat ve hemen durdur. Bu işlem iOS'a "Kullanıcı etkileşimi var" der.
+        audio.play().then(() => {
+          audio.pause();
+          audio.currentTime = 0; // Başa sar
+          audioUnlocked = true; // Kilit açıldı, artık istediğimiz zaman çalabiliriz
+          console.log("Ses sistemi iOS için açıldı (Unlocked).");
+        }).catch(error => {
+          console.log("Unlock denemesi başarısız oldu (henüz):", error);
+        });
+      }
+    }
+
+    // --- MÜZİĞİ GERÇEKTEN BAŞLATAN FONKSİYON ---
+    function startMusic() {
+      if (!musicStarted) {
+        let audio = document.getElementById("bgMusic");
+        audio.volume = 0.5; 
+        audio.play().then(() => {
+          musicStarted = true;
+          console.log("Müzik 5. saniyede başladı!");
+        }).catch(error => {
+          console.log("Oynatma hatası:", error);
+        });
+      }
+    }
+
+    // --- OLAY DİNLEYİCİLERİ ---
+    
+    function mousePressed() {
+      isMouseActive = true;
+      unlockAudio(); // Masaüstü için kilit açma denemesi
+    }
+
+    function mouseReleased() {
+      isMouseActive = false;
+    }
+
+    function touchStarted() {
+      isTouchActive = true;
+      unlockAudio(); // iPhone için KRİTİK nokta burası. İlk dokunuşta kilidi açıyoruz.
+      return false; 
+    }
+
+    function touchEnded() {
+      isTouchActive = false;
+      return false; 
+    }
+
+    function draw() {
+      background(0);
+      if (explosionTriggered) {
+        if (bgFade < 255) bgFade += 0.2;
+        fill(0, bgFade);
+        rect(0, 0, width, height);
+      }
+
+      let tx = mouseX;
+      let ty = mouseY;
+      let isPressed = isMouseActive || isTouchActive; 
+
+      if (touches.length > 0) {
+        tx = touches[0].x;
+        ty = touches[0].y;
+      }
+
+      if (isPressed) {
+        holdTime += deltaTime / 1000;
+      } else {
+        holdTime = 0;
+      }
+
+      // Normal yıldızlar
+      for (let star of stars) {
+        if (star === centerStar) {
+          fill(255);
+          ellipse(star.x, star.y, star.size * 2);
+          continue;
+        }
+
+        if (isPressed) {
+          let d = dist(tx, ty, star.x, star.y);
+          if (d < 250 && !spinning) {
+            let angle = atan2(ty - star.y, tx - star.x);
+            let pull = 0.5;
+            star.inertiaX = cos(angle) * pull;
+            star.inertiaY = sin(angle) * pull;
+            star.inertiaCounter = 30;
+          } else {
+            if (star.inertiaCounter > 0) star.inertiaCounter--;
+            else {
+              star.inertiaX *= 0.95;
+              star.inertiaY *= 0.95;
+            }
+          }
+        }
+
+        star.x += star.baseSpeedX + star.inertiaX;
+        star.y += star.baseSpeedY + star.inertiaY;
+
+        if (star.x < 0) star.x = width;
+        if (star.x > width) star.x = 0;
+        if (star.y < 0) star.y = height;
+        if (star.y > height) star.y = 0;
+        
+        if (spinning && spinningStars.length > 0) {
+          let closest = null;
+          let minDist = 9999;
+          let strongestStar = null;
+
+          for (let s of spinningStars) {
+            let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
+            let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
+            let distTo = dist(star.x, star.y, cx, cy);
+            if (distTo < minDist) {
+              minDist = distTo;
+              closest = { x: cx, y: cy };
+              strongestStar = s;
+            }
+          }
+
+          if (closest && minDist < 200) {
+            let angle = atan2(closest.y - star.y, closest.x - star.x);
+            let basePull = map(minDist, 0, 200, 1.0, 0.04);
+            let pull = basePull * strongestStar.speedMultiplier;
+            star.inertiaX = cos(angle) * pull;
+            star.inertiaY = sin(angle) * pull;
+            star.inertiaCounter = 30;
+          }
+        }
+
+        fill(red(star.color), green(star.color), blue(star.color), star.alpha);
+        ellipse(star.x, star.y, star.size);
+      }
+
+      // --- MÜZİĞİN VE SAHNENİN BAŞLADIĞI YER ---
+      if (holdTime >= 5 && !spinning) {
+        startMusic(); // 5 saniye dolunca önceden kilidi açılmış müziği başlat
+        
+        spinning = true;
+        starsToSpin = stars.sort(() => 0.5 - random()).slice(0, 200);
+        centerStar = starsToSpin[0]; 
+        centerStar.size = 2; 
+      }
+      // -----------------------------------------
+
+      if (spinning && starsToSpin.length > 0) {
+        spinTimer += deltaTime / 1000;
+        if (spinTimer >= 0.05) {
+          let star = starsToSpin.shift();
+          spinningStars.push({
+            x: star.x,
+            y: star.y,
+            size: star.size,
+            alpha: star.alpha,
+            color: star.color,
+            angle: random(TWO_PI),
+            radius: random(80, 120),
+            baseSpeed: 0.04,
+            speedMultiplier: 0,
+            acceleration: 0.002,
+            maxMultiplier: 1.70,
+            offsetX: random(-20, 20),
+            offsetY: random(-20, 20),
+            targetX: width / 2,
+            targetY: height / 2,
+            vx: 0,
+            vy: 0
+          });
+          spinTimer = 0;
+        }
+      }
+
+      if (spinning) {
+        for (let s of spinningStars) {
+          s.x += (s.targetX - s.x) * 0.015;
+          s.y += (s.targetY - s.y) * 0.015;
+
+          if (!explosionTriggered) s.speedMultiplier += s.acceleration;
+
+          s.angle += s.baseSpeed * s.speedMultiplier;
+          let cx = s.x + cos(s.angle) * s.radius + s.offsetX;
+          let cy = s.y + sin(s.angle) * s.radius + s.offsetY;
+
+          fill(red(s.color), green(s.color), blue(s.color), s.alpha);
+          ellipse(cx, cy, s.size);
+
+          if (s.speedMultiplier >= s.maxMultiplier && !explosionTriggered) {
+            explosionTriggered = true;
+            for (let ex of spinningStars) {
+              let angle = random(TWO_PI);
+              let force = random(5, 10);
+              ex.vx = cos(angle) * force;
+              ex.vy = sin(angle) * force;
+            }
+
+            fadeStars = stars.filter(st => st !== centerStar).map(st => ({ ...st, fading: false, fadeAlpha: st.alpha }));
+          }
+
+          if (explosionTriggered) {
+            s.x += s.vx;
+            s.y += s.vy;
+            s.alpha *= 0.85;
+          }
+        }
+      }
+
+      if (fadeStars.length > 0 && explosionTriggered) {
+        let totalTime = 5; 
+        let starsPerFrame = fadeStars.length / (totalTime * 60); 
+
+        for (let i = fadeStars.length - 1; i >= 0; i--) {
+          let st = fadeStars[i];
+
+          st.fadeAlpha -= 255 / (totalTime * 60);
+          if (st.fadeAlpha < 0) st.fadeAlpha = 0;
+
+          if (st.fadeAlpha <= 0) {
+            fadeStars.splice(i, 1);
+            stars.splice(stars.indexOf(st), 1);
+          } else {
+            fill(red(st.color), green(st.color), blue(st.color), st.fadeAlpha);
+            ellipse(st.x, st.y, st.size);
+          }
+        }
+      }
+
+      if (centerStar) {
+        centerStar.x += (width / 2 - centerStar.x) * 0.0015;
+        centerStar.y += (height / 2 - centerStar.y) * 0.0015;
+
+        if (!centerStar.particles) centerStar.particles = [];
+        if (!centerStar.explosionDone) centerStar.explosionDone = false;
+        if (!centerStar.waitStart) centerStar.waitStart = false;
+
+        if (explosionTriggered && fadeStars.length === 0) {
+          if (!centerStar.startTime) centerStar.startTime = millis();
+
+          let elapsed = (millis() - centerStar.startTime) / 1000;
+          let baseSize = centerStar.size * 1.5;
+          let currentSize = baseSize;
+          let alpha = 255;
+
+          if (elapsed < 3) {
+            currentSize = baseSize;
+          } else if (elapsed >= 3 && elapsed < 5) {
+            let t = (elapsed - 3) / 2.0;
+            currentSize = lerp(baseSize, baseSize * 3, t);
+          } else if (elapsed >= 5 && elapsed < 15) {
+            currentSize = baseSize * 3;
+            let t = (elapsed - 5);
+            let cycle = floor(t / 2);
+            if (cycle < 5) {
+              let phase = (t % 2) / 2;
+              alpha = lerp(255, 128, sin(phase * PI));
+            } else {
+              alpha = 255;
+              if (!centerStar.waitStart) centerStar.waitStart = millis();
+            }
+          } else if (!centerStar.explosionDone) {
+            let waitElapsed = (millis() - centerStar.waitStart) / 1000;
+            if (!centerStar.waitStart) centerStar.waitStart = millis();
+
+            if (waitElapsed >= 2) {
+              if (centerStar.particles.length === 0) {
+                for (let i = 0; i < 400; i++) { 
+                  let angle = random(TWO_PI);
+                  let speed = random(3, 16); 
+                  centerStar.particles.push({
+                    x: centerStar.x,
+                    y: centerStar.y,
+                    vx: cos(angle) * speed,
+                    vy: sin(angle) * speed,
+                    size: random(2, 5),
+                    alpha: 255
+                  });
+                }
+                for (let i = 0; i < 5000; i++) { 
+                  if (i < allPoints.length) {
+                    let angle = random(TWO_PI);
+                    let speed = random(3, 16);
+                    realStars.push({
+                      x: centerStar.x,
+                      y: centerStar.y,
+                      vx: cos(angle) * speed,
+                      vy: sin(angle) * speed,
+                      size: random(2, 5),
+                      targetIndex: i, 
+                      brightness: 255, 
+                      moveStartTime: 0, 
+                      movingToTarget: false
+                    });
+                  }
+                }
+                realStarsCreatedTime = millis(); 
+              }
+
+              currentSize = centerStar.size * 3;
+              fill(255, 200, 150, 180); 
+              ellipse(centerStar.x, centerStar.y, currentSize * 1.2);
+
+              for (let i = 0; i < centerStar.particles.length; i++) {
+                let p = centerStar.particles[i];
+                p.vx *= 0.95;
+                p.vy *= 0.95;
+                p.vx += random(-0.1, 0.1);
+                p.vy += random(-0.1, 0.1);
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 4; 
+                fill(255, p.alpha);
+                ellipse(p.x, p.y, p.size);
+              }
+
+              centerStar.explosionDone = true;
+            }
+          }
+
+          fill(255, alpha);
+          ellipse(centerStar.x, centerStar.y, currentSize);
+        } else {
+          fill(255);
+          ellipse(centerStar.x, centerStar.y, centerStar.size * 2);
+        }
+      }
+
+      if (centerStar && centerStar.explosionDone && realStarsCreatedTime > 0) {
+        const elapsedSinceRealStars = millis() - realStarsCreatedTime;
+        
+        for (let i = 0; i < realStars.length; i++) {
+          let s = realStars[i];
+
+          if (elapsedSinceRealStars < 10000) {
+            s.vx *= 0.98;
+            s.vy *= 0.98;
+            s.vx += random(-0.05, 0.05);
+            s.vy += random(-0.05, 0.05);
+          } else {
+            if (!s.movingToTarget) {
+              s.movingToTarget = true;
+              s.moveStartTime = millis();
+            }
+            
+            if (allPoints[s.targetIndex]) {
+               const virtualCoords = getVirtualCoordinates(
+                 allPoints[s.targetIndex].x, 
+                 allPoints[s.targetIndex].y
+               );
+               const targetX = virtualCoords.x;
+               const targetY = virtualCoords.y;
+    
+               const dx = targetX - s.x;
+               const dy = targetY - s.y;
+               const distance = sqrt(dx * dx + dy * dy);
+    
+               if (distance > 50) { 
+                 let timeSinceStart = millis() - s.moveStartTime;
+                 let accelerationFactor = map(timeSinceStart, 0, 8000, 0.005, 1.0); 
+                 accelerationFactor = constrain(accelerationFactor, 0.005, 1.0);
+                 
+                 const baseSpeed = 0.05;
+                 const speed = baseSpeed * accelerationFactor;
+                 s.vx = (dx / distance) * speed * distance * 0.1;
+                 s.vy = (dy / distance) * speed * distance * 0.1;
+               } else {
+                 s.vx = 0;
+                 s.vy = 0;
+                 s.x = targetX;
+                 s.y = targetY;
+               }
+            }
+          }
+
+          s.x += s.vx;
+          s.y += s.vy;
+
+          fill(255, s.brightness);
+          ellipse(s.x, s.y, s.size);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
