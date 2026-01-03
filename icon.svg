@@ -1,0 +1,88 @@
+<svg width="512" height="512" viewBox="-50 -50 612 612" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="deepSpaceGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#120024"/>
+      <stop offset="80%" stop-color="#05000a"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+
+    <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#e0b0ff"/>
+      <stop offset="50%" stop-color="#7c00ff"/>
+      <stop offset="100%" stop-color="#7c00ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6200ea" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#b500d6"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="intensiveGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="-50" y="-50" width="612" height="612" fill="url(#deepSpaceGrad)"/>
+
+  <g filter="url(#intensiveGlow)" stroke-linecap="round">
+      
+      <g opacity="0.5" stroke="#9c27b0" stroke-width="2">
+          <line x1="50" y1="256" x2="150" y2="256" />
+          <line x1="462" y1="256" x2="362" y2="256" />
+          <line x1="256" y1="50" x2="256" y2="150" />
+          <line x1="256" y1="462" x2="256" y2="362" />
+          <line x1="100" y1="100" x2="180" y2="180" />
+          <line x1="412" y1="100" x2="332" y2="180" />
+          <line x1="100" y1="412" x2="180" y2="332" />
+          <line x1="412" y1="412" x2="332" y2="332" />
+          <line x1="80" y1="150" x2="170" y2="210" />
+          <line x1="432" y1="150" x2="342" y2="210" />
+          <line x1="150" y1="80" x2="210" y2="170" />
+          <line x1="362" y1="80" x2="302" y2="170" />
+      </g>
+
+      <g opacity="0.7" stroke="#e040fb" stroke-width="3">
+          <line x1="120" y1="256" x2="200" y2="256" transform="rotate(10 256 256)"/>
+          <line x1="392" y1="256" x2="312" y2="256" transform="rotate(10 256 256)"/>
+          <line x1="256" y1="120" x2="256" y2="200" transform="rotate(-10 256 256)"/>
+          <line x1="256" y1="392" x2="256" y2="312" transform="rotate(-10 256 256)"/>
+          <line x1="160" y1="160" x2="220" y2="220" />
+          <line x1="352" y1="160" x2="292" y2="220" />
+          <line x1="160" y1="352" x2="220" y2="292" />
+          <line x1="352" y1="352" x2="292" y2="292" />
+          <line x1="190" y1="130" x2="230" y2="190" stroke-width="2.5"/>
+          <line x1="322" y1="382" x2="282" y2="322" stroke-width="2.5"/>
+      </g>
+
+       <g opacity="0.9" stroke="#ffffff" stroke-width="4">
+          <line x1="190" y1="256" x2="235" y2="256" />
+          <line x1="322" y1="256" x2="277" y2="256" />
+          <line x1="256" y1="190" x2="256" y2="235" />
+          <line x1="256" y1="322" x2="256" y2="277" />
+          <line x1="210" y1="210" x2="240" y2="240" stroke-width="3.5"/>
+          <line x1="302" y1="210" x2="272" y2="240" stroke-width="3.5"/>
+          <line x1="210" y1="302" x2="240" y2="272" stroke-width="3.5"/>
+          <line x1="302" y1="302" x2="272" y2="272" stroke-width="3.5"/>
+      </g>
+  </g>
+
+  <g filter="url(#intensiveGlow)" opacity="0.8">
+    <ellipse cx="256" cy="256" rx="180" ry="50" stroke="url(#ringGrad)" stroke-width="6" fill="none" transform="rotate(25 256 256)"/>
+    <ellipse cx="256" cy="256" rx="170" ry="50" stroke="url(#ringGrad)" stroke-width="6" fill="none" transform="rotate(85 256 256)" opacity="0.7"/>
+    <ellipse cx="256" cy="256" rx="160" ry="50" stroke="url(#ringGrad)" stroke-width="6" fill="none" transform="rotate(145 256 256)" opacity="0.7"/>
+    
+    <ellipse cx="256" cy="256" rx="110" ry="30" stroke="#a300ff" stroke-width="4" fill="none" transform="rotate(55 256 256)"/>
+    <ellipse cx="256" cy="256" rx="110" ry="30" stroke="#d500f9" stroke-width="4" fill="none" transform="rotate(115 256 256)"/>
+  </g>
+
+  <circle cx="256" cy="256" r="75" fill="url(#coreGrad)" opacity="0.7" filter="url(#intensiveGlow)"/>
+  <circle cx="256" cy="256" r="40" fill="#ffffff" filter="url(#intensiveGlow)"/>
+</svg>
