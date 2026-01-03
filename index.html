@@ -298,7 +298,7 @@
           let d = dist(tx, ty, star.x, star.y);
           if (d < 250 && !spinning) {
             let angle = atan2(ty - star.y, tx - star.x);
-            let pull = 0.3;
+            let pull = 0.5;
             star.inertiaX = cos(angle) * pull;
             star.inertiaY = sin(angle) * pull;
             star.inertiaCounter = 30;
@@ -598,3 +598,4 @@
   </script>
 </body>
 </html>
+
